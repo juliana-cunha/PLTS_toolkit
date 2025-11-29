@@ -1,0 +1,384 @@
+"""
+JSON Handler Module.
+
+Handles persistence of Lattices, Residuated Lattices, Twist Structures, Worlds, Models,
+and User Configuration.
+"""
+
+import json
+import re
+import os
+from ast import literal_eval
+from typing import Optional, List, Dict, Any
+
+from math_objects.lattice import Lattice, ResiduatedLattice, TwistStructure
+from math_objects.world import World
+from math_objects.model import Model
+
+
+class JSONHandler:
+
+    @staticmethod
+    def _load_safe(filename: str) -> Dict[str, Any]:
+        """Safely loads JSON data from a file."""
+        if not os.path.exists(filename) or os.path.getsize(filename) == 0:
+            return {}
+        try:
+            with open(filename, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: Failed to load {filename}: {e}")
+            return {}
+
+    @staticmethod
+    def _compact_json(data: Dict[str, Any]) -> str:
+        """Formats JSON to keep lists and relation tuples on one line for readability."""
+        json_str = json.dumps(data, indent=4)
+        # Compact simple lists [ "a", "b" ]
+        json_str = re.sub(r'\[\s+("[^"]+",?)\s+\]', r'[\1]', json_str)
+        # Compact tuples [ "a", "b" ]
+        json_str = re.sub(r'\[\s+("[^"]+",)\s+("[^"]+")\s+\]', r'[\1 \2]', json_str)
+        # Compact nested lists/tuples often used in relations
+        json_str = re.sub(r'\[\s+((?:\["[^"]+",\s*"[^"]+"\](?:,\s*)?)+)\s+\]', lambda m: f"[{m.group(1)}]", json_str)
+        return json_str
+
+    # ==========================================
+    #               CONFIGURATION
+    # ==========================================
+
+    @staticmethod
+    def load_config(filename: str) -> Dict[str, Any]:
+        """Loads user configuration settings."""
+        return JSONHandler._load_safe(filename)
+
+    @staticmethod
+    def save_config(filename: str, config: Dict[str, Any]) -> bool:
+        """Saves user configuration settings."""
+        try:
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            with open(filename, 'w') as f:
+                json.dump(config, f, indent=4)
+            return True
+        except Exception as e:
+            print(f"Error saving config: {e}")
+            return False
+
+    # ==========================================
+    #                 LATTICE
+    # ==========================================
+
+    @staticmethod
+    def load_lattice_from_json(filename: str, lattice_name: str) -> Optional[Lattice]:
+        data = JSONHandler._load_safe(filename)
+        if 'lattices' in data:
+            for l_data in data['lattices']:
+                if l_data.get('name') == lattice_name:
+                    try:
+                        elements = set(l_data.get('elements', []))
+                        relations = set(tuple(r) for r in l_data.get('relations', []))
+                        
+                        raw_imp = l_data.get('implication_map', {})
+                        implication_map = {}
+                        for key_str, val in raw_imp.items():
+                            try:
+                                # Convert string key "(a, b)" back to tuple
+                                key_tuple = literal_eval(key_str)
+                                implication_map[key_tuple] = val
+                            except: pass
+                            
+                        return Lattice(lattice_name, elements, relations, implication_map)
+                    except Exception as e:
+                        print(f"Error parsing lattice {lattice_name}: {e}")
+        return None
+
+    @staticmethod
+    def save_lattice_to_json(filename: str, new_lattice: Lattice) -> bool:
+        try:
+            data = JSONHandler._load_safe(filename)
+            if 'lattices' not in data: data['lattices'] = []
+            
+            # Remove existing entry if overwriting
+            l_list = [l for l in data['lattices'] if l.get('name') != new_lattice.name]
+            
+            # Serialize implication map keys to strings
+            imp_map_str = {str(k): v for k, v in new_lattice.implication_map.items()}
+            
+            l_dict = {
+                "name": new_lattice.name,
+                "elements": list(new_lattice.elements),
+                "relations": [list(r) for r in new_lattice.relations],
+                "implication_map": imp_map_str
+            }
+            l_list.append(l_dict)
+            data['lattices'] = l_list
+            
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+            return True
+        except Exception as e:
+            print(f"Error saving lattice: {e}")
+            return False
+
+    @staticmethod
+    def delete_lattice_from_json(filename: str, lattice_name: str) -> None:
+        data = JSONHandler._load_safe(filename)
+        if 'lattices' in data:
+            data['lattices'] = [l for l in data['lattices'] if l.get('name') != lattice_name]
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+
+    # ==========================================
+    #           RESIDUATED LATTICE
+    # ==========================================
+
+    @staticmethod
+    def load_residuated_lattice_from_json(filename: str, rl_name: str, lattices_file="json_files/lattices.json") -> Optional[ResiduatedLattice]:
+        data = JSONHandler._load_safe(filename)
+        if 'residuated_lattices' in data:
+            for rl in data['residuated_lattices']:
+                if rl.get('name_residuated_lattice') == rl_name:
+                    # Load base lattice to get structure
+                    base = JSONHandler.load_lattice_from_json(lattices_file, rl.get('name_lattice'))
+                    if base: 
+                        return ResiduatedLattice(rl_name, base.name, base.elements, base.relations, base.implication_map)
+        return None
+
+    @staticmethod
+    def save_residuated_lattice_to_json(filename: str, new_rl: ResiduatedLattice) -> bool:
+        try:
+            data = JSONHandler._load_safe(filename)
+            if 'residuated_lattices' not in data: data['residuated_lattices'] = []
+            
+            l = [x for x in data['residuated_lattices'] if x.get('name_residuated_lattice') != new_rl.name_residuated_lattice]
+            l.append({
+                "name_residuated_lattice": new_rl.name_residuated_lattice, 
+                "name_lattice": new_rl.name
+            })
+            data['residuated_lattices'] = l
+            
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+            return True
+        except: return False
+
+    @staticmethod
+    def delete_residuated_lattice_from_json(filename: str, rl_name: str) -> None:
+        data = JSONHandler._load_safe(filename)
+        if 'residuated_lattices' in data:
+            data['residuated_lattices'] = [x for x in data['residuated_lattices'] if x.get('name_residuated_lattice') != rl_name]
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+
+    # ==========================================
+    #             TWIST STRUCTURE
+    # ==========================================
+
+    @staticmethod
+    def load_twist_structure_from_json(filename: str, ts_name: str, rl_file="json_files/residuated_lattices.json") -> Optional[TwistStructure]:
+        data = JSONHandler._load_safe(filename)
+        if 'twist_structures' in data:
+            for ts_data in data['twist_structures']:
+                if ts_data.get('name') == ts_name:
+                    # Load base RL
+                    rl = JSONHandler.load_residuated_lattice_from_json(rl_file, ts_data.get('residuated_lattice_name'))
+                    if rl:
+                        ts = TwistStructure(rl)
+                        ts.name = ts_name
+                        # Load pre-calculated elements/relations if present (optional but faster)
+                        if 'elements' in ts_data: 
+                            ts.elements = {tuple(e) for e in ts_data['elements']}
+                        if 'truth_relation' in ts_data: 
+                            ts.truth_relation = {tuple(map(tuple, r)) for r in ts_data['truth_relation']}
+                        if 'qntt_info_relation' in ts_data: 
+                            ts.qntt_info_relation = {tuple(map(tuple, r)) for r in ts_data['qntt_info_relation']}
+                        return ts
+        return None
+
+    @staticmethod
+    def save_twist_structure_to_json(filename: str, new_ts: TwistStructure, name: str) -> bool:
+        try:
+            data = JSONHandler._load_safe(filename)
+            if 'twist_structures' not in data: data['twist_structures'] = []
+            
+            l = [x for x in data['twist_structures'] if x.get('name') != name]
+            
+            elements_list = [list(e) for e in sorted(list(new_ts.elements))]
+            truth_rel_list = [[list(a), list(b)] for a, b in sorted(list(new_ts.truth_relation))]
+            info_rel_list = [[list(a), list(b)] for a, b in sorted(list(new_ts.qntt_info_relation))]
+
+            l.append({
+                "name": name, 
+                "residuated_lattice_name": new_ts.residuated_lattice.name_residuated_lattice,
+                "elements": elements_list,
+                "truth_relation": truth_rel_list,
+                "qntt_info_relation": info_rel_list
+            })
+            data['twist_structures'] = l
+            
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+            return True
+        except: return False
+
+    @staticmethod
+    def delete_twist_structure_from_json(filename: str, ts_name: str) -> None:
+        data = JSONHandler._load_safe(filename)
+        if 'twist_structures' in data:
+            data['twist_structures'] = [x for x in data['twist_structures'] if x.get('name') != ts_name]
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+
+    # ==========================================
+    #                  WORLD
+    # ==========================================
+
+    @staticmethod
+    def load_world_from_json(filename: str, world_name: str, twist_file: str = "json_files/twist_structures.json") -> Optional[World]:
+        data = JSONHandler._load_safe(filename)
+        if 'worlds' in data:
+            for w in data['worlds']:
+                if w.get('world_name') == world_name:
+                    ts_name = w.get('twist_structure_name')
+                    ts = None
+                    if ts_name:
+                        ts = JSONHandler.load_twist_structure_from_json(twist_file, ts_name)
+                    
+                    return World(world_name, w.get('short_world_name'), ts, w.get('assignments', {}))
+        return None
+
+    @staticmethod
+    def save_world_to_json(filename: str, new_world: World) -> bool:
+        try:
+            data = JSONHandler._load_safe(filename)
+            if 'worlds' not in data: data['worlds'] = []
+            
+            w_list = [w for w in data['worlds'] if w.get('world_name') != new_world.name_long]
+            
+            w_dict = {
+                "world_name": new_world.name_long,
+                "short_world_name": new_world.name_short,
+                "twist_structure_name": new_world.twist_structure.name if new_world.twist_structure else None,
+                "assignments": new_world.assignments
+            }
+            w_list.append(w_dict)
+            data['worlds'] = w_list
+            
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+            return True
+        except Exception as e: 
+            print(f"Save world error: {e}")
+            return False
+
+    @staticmethod
+    def delete_world_from_json(filename: str, w_name: str) -> None:
+        data = JSONHandler._load_safe(filename)
+        if 'worlds' in data:
+            data['worlds'] = [w for w in data['worlds'] if w.get('world_name') != w_name]
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+
+    # ==========================================
+    #                  MODEL
+    # ==========================================
+
+    @staticmethod
+    def load_model_from_json(
+        filename: str, 
+        model_name: str, 
+        worlds_file: str = "json_files/worlds.json",
+        twist_file: str = "json_files/twist_structures.json"
+    ) -> Optional[Model]:
+        data = JSONHandler._load_safe(filename)
+        if 'models' in data:
+            for m in data['models']:
+                if m.get('model_name') == model_name:
+                    try:
+                        # 1. Load Twist Structure
+                        ts_name = m.get('twist_structure_name')
+                        ts = JSONHandler.load_twist_structure_from_json(twist_file, ts_name)
+                        
+                        # 2. Load Worlds
+                        w_set, w_map = set(), {}
+                        for wn in m.get("worlds", []):
+                            w_obj = JSONHandler.load_world_from_json(worlds_file, wn)
+                            if w_obj:
+                                w_set.add(w_obj)
+                                w_map[w_obj.name_long] = w_obj
+                        
+                        # 3. Relations (Weighted)
+                        # Structure: Act -> Source -> {Target -> WeightTuple}
+                        rels = {}
+                        raw_rels = m.get("accessibility_relations", {})
+                        
+                        for act, src_map in raw_rels.items():
+                            rels[act] = {}
+                            for src_name, tgt_data in src_map.items():
+                                if src_name in w_map:
+                                    src_w = w_map[src_name]
+                                    rels[act][src_w] = {}
+                                    
+                                    # Handle weighted format (Dict[TargetName, WeightList])
+                                    if isinstance(tgt_data, dict):
+                                        for tgt_name, weight in tgt_data.items():
+                                            if tgt_name in w_map:
+                                                # Convert list back to tuple
+                                                rels[act][src_w][w_map[tgt_name]] = tuple(weight)
+                                    
+                                    # Handle legacy list format
+                                    elif isinstance(tgt_data, list):
+                                        top_val = (ts.residuated_lattice.top, ts.residuated_lattice.bottom)
+                                        for tgt_name in tgt_data:
+                                            if tgt_name in w_map:
+                                                rels[act][src_w][w_map[tgt_name]] = top_val
+
+                        return Model(
+                            model_name, ts, w_set, w_map.get(m.get("initial_state")), 
+                            rels, set(m.get('props', [])), set(raw_rels.keys())
+                        )
+                    except Exception as e: 
+                        print(f"Error loading model {model_name}: {e}")
+                        return None
+        return None
+
+    @staticmethod
+    def save_model_to_json(filename: str, new_model: Model) -> bool:
+        try:
+            data = JSONHandler._load_safe(filename)
+            if 'models' not in data: data['models'] = []
+            m_list = [m for m in data['models'] if m.get('model_name') != new_model.name_model]
+            
+            # Save relations with weights
+            # Structure: Act -> SourceName -> {TargetName -> WeightList}
+            acc_json = {}
+            for act in new_model.actions:
+                acc_json[act] = {}
+                if act in new_model.accessibility_relations:
+                    for src, target_map in new_model.accessibility_relations[act].items():
+                        t_json = {}
+                        for tgt, weight in target_map.items():
+                            # Weights are tuples, must convert to list for JSON
+                            t_json[tgt.name_long] = list(weight)
+                        
+                        if t_json:
+                            acc_json[act][src.name_long] = t_json
+
+            m_list.append({
+                "model_name": new_model.name_model,
+                "twist_structure_name": new_model.twist_structure.name,
+                "worlds": [w.name_long for w in new_model.worlds],
+                "accessibility_relations": acc_json,
+                "initial_state": new_model.initial_state.name_long,
+                "props": list(new_model.props)
+            })
+            data['models'] = m_list
+            
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+            return True
+        except Exception as e:
+            print(f"Save Model Error: {e}")
+            return False
+
+    @staticmethod
+    def delete_model_from_json(filename: str, model_name: str) -> None:
+        data = JSONHandler._load_safe(filename)
+        if 'models' in data:
+            data['models'] = [m for m in data['models'] if m.get('model_name') != model_name]
+            with open(filename, 'w') as f: f.write(JSONHandler._compact_json(data))
+
+    @staticmethod
+    def get_names_from_json(filename: str, json_key: str, name_key: str) -> List[str]:
+        data = JSONHandler._load_safe(filename)
+        return [i[name_key] for i in data.get(json_key, []) if name_key in i]

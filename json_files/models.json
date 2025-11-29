@@ -1,0 +1,96 @@
+{
+    "models": [
+        {
+            "model_name": "model_B2",
+            "twist_structure_name": "Boolean Algebra TS",
+            "worlds": [
+                "world3_B2",
+                "world1_B2",
+                "world2_B2"
+            ],
+            "accessibility_relations": {
+                "a2": {
+                    "world1_B2": {
+                        "world3_B2": ["1", "1"]
+                    },
+                    "world2_B2": {
+                        "world1_B2": ["1", "1"],
+                        "world3_B2": ["1", "0"]
+                    },
+                    "world3_B2": {
+                        "world3_B2": ["0", "1"]
+                    }
+                },
+                "a1": {
+                    "world1_B2": {
+                        "world1_B2": ["0", "1"],
+                        "world2_B2": ["1", "0"],
+                        "world3_B2": ["1", "0"]
+                    },
+                    "world3_B2": {
+                        "world1_B2": ["1", "1"]
+                    }
+                }
+            },
+            "initial_state": "world1_B2",
+            "props": [
+                "q",
+                "r",
+                "s",
+                "p"
+            ]
+        },
+        {
+            "model_name": "model_Luk",
+            "twist_structure_name": "Lukasiewicz TS",
+            "worlds": [
+                "world3_Luk",
+                "world1_Luk",
+                "world2_Luk"
+            ],
+            "accessibility_relations": {
+                "a3": {
+                    "world2_Luk": {
+                        "world1_Luk": ["1", "1"]
+                    },
+                    "world3_Luk": {
+                        "world1_Luk": ["1", "u"],
+                        "world2_Luk": ["u", "1"]
+                    }
+                },
+                "a2": {
+                    "world1_Luk": {
+                        "world2_Luk": ["1", "u"]
+                    },
+                    "world2_Luk": {
+                        "world1_Luk": ["1", "u"],
+                        "world3_Luk": ["0", "1"]
+                    },
+                    "world3_Luk": {
+                        "world2_Luk": ["0", "0"]
+                    }
+                },
+                "a1": {
+                    "world1_Luk": {
+                        "world1_Luk": ["1", "u"],
+                        "world3_Luk": ["0", "0"]
+                    },
+                    "world2_Luk": {
+                        "world2_Luk": ["u", "0"]
+                    },
+                    "world3_Luk": {
+                        "world1_Luk": ["u", "0"],
+                        "world3_Luk": ["u", "0"]
+                    }
+                }
+            },
+            "initial_state": "world1_Luk",
+            "props": [
+                "q",
+                "r",
+                "s",
+                "p"
+            ]
+        }
+    ]
+}

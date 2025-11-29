@@ -1,0 +1,12 @@
+{
+    "residuated_lattices": [
+        {
+            "name_residuated_lattice": "Boolean Algebra RL",
+            "name_lattice": "Boolean Algebra"
+        },
+        {
+            "name_residuated_lattice": "Lukasiewicz RL",
+            "name_lattice": "Lukasiewicz"
+        }
+    ]
+}
