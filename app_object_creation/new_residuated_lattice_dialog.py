@@ -1,7 +1,7 @@
 """
 New Residuated Lattice Dialog.
 
-Creates a RL by selecting a base Lattice (which already contains the Implication Map).
+Creates a RL by selecting a base Lattice.
 """
 
 from typing import Dict, Any, Tuple

@@ -2,7 +2,7 @@
 Main Application Module.
 
 This module defines the MainWindow class, which serves as the primary user interface
-for the Modal & Paraconsistent Logic Editor.
+for the Paraconsistent Logic Editor.
 """
 
 import sys
@@ -34,44 +34,83 @@ from app_object_creation.new_model_dialog import NewModelDialog
 from app_object_loading.obj_loading import MultiSelectDialog
 
 
+# LIGHT THEME DEFINITION
+LIGHT_STYLESHEET = """
+QWidget {
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 4px 10px;
+}
+
+QLineEdit, QTextEdit, QPlainTextEdit {
+    padding: 4px;
+    border-radius: 3px;
+}
+
+QPushButton {
+    border: 1px solid #8f8f91;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    padding: 5px 4px; 
+    min-height: 20px;
+}
+
+QPushButton:hover {
+    background-color: #e0e0e0;
+}
+QPushButton:pressed {
+    background-color: #d0d0d0;
+}
+
+QComboBox {
+    padding: 4px;
+    padding-right: 20px;
+    border: 1px solid #8f8f91;
+    border-radius: 3px;
+}
+"""
+
 # DARK THEME DEFINITION
 DARK_STYLESHEET = """
-/* Main Window & General Widgets */
 QWidget {
     background-color: #2b2b2b;
     color: #ffffff;
     font-family: "Segoe UI", "Arial", sans-serif;
 }
 
-/* Tooltips */
 QToolTip {
     color: #ffffff;
     background-color: #2a82da;
     border: 1px solid #ffffff;
 }
 
-/* Menus */
 QMenuBar {
     background-color: #2b2b2b;
     color: #ffffff;
 }
+
 QMenuBar::item {
     background: transparent;
     padding: 4px 10px;
 }
+
 QMenuBar::item:selected {
     background: #2a82da;
 }
+
 QMenu {
     background-color: #2b2b2b;
     color: #ffffff;
     border: 1px solid #555;
 }
+
 QMenu::item:selected {
     background-color: #2a82da;
 }
 
-/* Inputs (Text Fields) */
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: #191919;
     color: #ffffff;
@@ -80,26 +119,15 @@ QLineEdit, QTextEdit, QPlainTextEdit {
     padding: 4px;
 }
 
-/* --- ENHANCED DROPDOWN STYLING --- */
 QComboBox {
     background-color: #191919;
     color: #ffffff;
     border: 1px solid #555;
     border-radius: 3px;
     padding: 4px;
-    padding-right: 20px; /* Make room for arrow */
+    padding-right: 20px;
 }
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right;
-    width: 20px;
-    border-left-width: 1px;
-    border-left-color: #555;
-    border-left-style: solid;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    background: #353535;
-}
+
 QComboBox QAbstractItemView {
     background-color: #191919;
     color: #ffffff;
@@ -108,7 +136,7 @@ QComboBox QAbstractItemView {
     selection-color: #ffffff;
     outline: none;
 }
-/* Clear options in dropdown */
+
 QComboBox QAbstractItemView::item {
     min_height: 25px;
     padding: 5px;
@@ -117,11 +145,11 @@ QComboBox QAbstractItemView::item:hover {
     background-color: #353535;
 }
 
-/* --- ENHANCED CHECKBOX STYLING --- */
 QCheckBox {
     color: #ffffff;
     spacing: 5px;
 }
+
 QCheckBox::indicator {
     width: 16px;
     height: 16px;
@@ -129,76 +157,84 @@ QCheckBox::indicator {
     border-radius: 3px;
     background: #191919;
 }
+
 QCheckBox::indicator:checked {
     background-color: #2a82da;
     border: 1px solid #2a82da;
-    /* Simple distinct look for checked state if no icon */
     image: none; 
 }
+
 QCheckBox::indicator:hover {
     border: 1px solid #2a82da;
 }
 
-/* Lists, Trees, Tables */
 QTreeWidget, QListWidget, QTableWidget {
     background-color: #191919;
     color: #ffffff;
     border: 1px solid #555;
     alternate-background-color: #222;
 }
+
 QListWidget::item {
     color: #ffffff;
     padding: 2px;
 }
+
 QListWidget::item:selected {
     background-color: #2a82da;
     color: #ffffff;
 }
+
 QHeaderView::section {
     background-color: #353535;
     color: #ffffff;
     padding: 4px;
     border: 1px solid #555;
 }
+
 QTableCornerButton::section {
     background-color: #353535;
     border: 1px solid #555;
 }
 
-/* Buttons */
 QPushButton {
     background-color: #353535;
     color: #ffffff;
     border: 1px solid #555;
     border-radius: 4px;
-    padding: 5px 10px;
+    padding: 5px 4px;
+    min-height: 20px;
 }
+
 QPushButton:hover {
     background-color: #454545;
     border: 1px solid #888;
 }
+
 QPushButton:pressed {
     background-color: #2a82da;
     border: 1px solid #2a82da;
 }
+
 QPushButton:disabled {
     color: #888;
     background-color: #2b2b2b;
     border: 1px solid #444;
 }
 
-/* Scrollbars */
 QScrollBar:vertical {
     border: none;
     background: #2b2b2b;
     width: 10px;
     margin: 0px 0px 0px 0px;
 }
+
 QScrollBar::handle:vertical {
     background: #555;
     min-height: 20px;
     border-radius: 5px;
 }
+
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0px;
 }
@@ -273,10 +309,14 @@ class MainWindow(QMainWindow):
         
         if self.is_dark_mode:
             app.setStyleSheet(DARK_STYLESHEET)
-            self.btn_legend.setStyleSheet("font-weight: bold; color: #5dade2;") 
+            self.btn_legend.setStyleSheet("font-weight: bold; color: #5dade2;")
+            if hasattr(self, 'action_dark_mode'):
+                self.action_dark_mode.setText("Toggle Light Mode")
         else:
-            app.setStyleSheet("") # Reset to native/Fusion default
+            app.setStyleSheet(LIGHT_STYLESHEET)
             self.btn_legend.setStyleSheet("font-weight: bold; color: #2980b9;")
+            if hasattr(self, 'action_dark_mode'):
+                self.action_dark_mode.setText("Toggle Dark Mode")
 
     def get_theme_color(self, role: str) -> str:
         """Returns hex color code based on current theme for HTML generation."""
@@ -382,7 +422,7 @@ class MainWindow(QMainWindow):
         self.btn_hasse.setEnabled(False) 
         vis_btn_layout.addWidget(self.btn_hasse)
         
-        self.btn_visualize_model = QPushButton("Show Model Graph")
+        self.btn_visualize_model = QPushButton("Show PLTS")
         self.btn_visualize_model.clicked.connect(self.visualize_current_model)
         self.btn_visualize_model.setEnabled(False)
         vis_btn_layout.addWidget(self.btn_visualize_model)
@@ -395,8 +435,8 @@ class MainWindow(QMainWindow):
         line_eval.setFrameShadow(QFrame.Shadow.Sunken)
         right_layout.addWidget(line_eval)
 
-        # 2. Formula Evaluator Section
-        label_eval = QLabel("Formula Evaluator:")
+        # 2. Formula Interpreter Section
+        label_eval = QLabel("Formula Interpreter:")
         label_eval.setStyleSheet("font-weight: bold; margin-top: 10px;")
         right_layout.addWidget(label_eval)
 
@@ -406,18 +446,18 @@ class MainWindow(QMainWindow):
         selection_layout.setSpacing(10)
         
         self.combo_models = QComboBox()
-        self.combo_models.setPlaceholderText("Select Model")
+        self.combo_models.setPlaceholderText("Select PLTS")
         self.combo_models.setMinimumWidth(150)
         self.combo_models.currentIndexChanged.connect(self.update_world_combo)
         
         self.combo_worlds = QComboBox()
-        self.combo_worlds.setPlaceholderText("Select World")
+        self.combo_worlds.setPlaceholderText("Select State")
         self.combo_worlds.setMinimumWidth(150)
         
-        selection_layout.addWidget(QLabel("Model:"))
+        selection_layout.addWidget(QLabel("PLTS:"))
         selection_layout.addWidget(self.combo_models)
         selection_layout.addSpacing(20)
-        selection_layout.addWidget(QLabel("World:"))
+        selection_layout.addWidget(QLabel("State:"))
         selection_layout.addWidget(self.combo_worlds)
         selection_layout.addStretch()
         
@@ -429,12 +469,11 @@ class MainWindow(QMainWindow):
         
         # (Label, InsertText)
         symbol_map = [
-            ("□", "[]"), 
-            ("◇", "<>"), 
+            ("□", "[a]"), 
+            ("◇", "<a>"), 
             ("¬", "~"), 
-            ("⇒", "=>"),   # Residuated Implication
-            ("→", "->"),   # Material Implication
-            ("↔", "<->"),  # Material Equivalence
+            ("▷", "->"),
+            ("◁▷", "<->"),  
             ("∧", "&"), 
             ("∨", "|"), 
             ("⊥", "0"),
@@ -464,11 +503,11 @@ class MainWindow(QMainWindow):
         self.formula_input.setPlaceholderText("Type formula here (e.g., [a]p & q)...") 
         self.formula_input.returnPressed.connect(self.evaluate_formula) 
         
-        self.btn_eval = QPushButton("Evaluate")
+        self.btn_eval = QPushButton("Interpret")
         self.btn_eval.clicked.connect(self.evaluate_formula)
         
         self.btn_validity = QPushButton("Check Validity")
-        self.btn_validity.setToolTip("Check if the formula holds in ALL worlds of the model")
+        self.btn_validity.setToolTip("Check if the formula holds in ALL states of the PLTS")
         self.btn_validity.clicked.connect(self.check_model_validity)
         
         input_layout.addWidget(self.formula_input)
@@ -510,19 +549,15 @@ class MainWindow(QMainWindow):
         <h3 style='color:{self.get_theme_color('info')};'>Symbol Legend</h3>
         <table border="1" cellpadding="4" cellspacing="0" style='border-collapse: collapse; color:{text_col};'>
             <tr style='background-color:{bg_col};'>
-                <td><b>Button</b></td><td><b>Input</b></td><td><b>Description</b></td>
+                <td><b>Button</b></td><td><b>Input</b></td><td><b>Description</b></td><td><b>Definition</b></td>
             </tr>
-            <tr><td>□</td><td>[]a</td><td>Box (Necessity)</td></tr>
-            <tr><td>◇</td><td>&lt;&gt;a</td><td>Diamond (Possibility)</td></tr>
-            <tr><td>¬</td><td>~</td><td>Negation</td></tr>
-            
-            <tr><td>⇒</td><td>=&gt;</td><td>Residuated Imp.</td><td>Lattice Implication</td></tr>
-            <tr><td>→</td><td>-&gt;</td><td>Material Imp.</td><td>Definition: ¬A ⊔ B</td></tr>
-            <tr><td>↔</td><td>&lt;-&gt;</td><td>Material Iff.</td><td>(A → B) ⊓ (B → A)</td></tr>
-            
+            <tr><td>□</td><td>[a]</td><td>Box (Necessity)</td><td>¬&lt;a&gt;¬A</td></tr>
+            <tr><td>◇</td><td>&lt;a&gt;</td><td>Diamond (Possibility)</td><td>&lt;a&gt;A</td></tr>
+            <tr><td>¬</td><td>~</td><td>Negation</td><td>¬A</td></tr>
+            <tr><td>▷</td><td>-&gt;</td><td>Material Imp.</td><td>¬A ⊔ B</td></tr>
+            <tr><td>◁▷</td><td>&lt;-&gt;</td><td>Material Iff.</td><td>(A ▷ B) ⊓ (B ▷ A)</td></tr>
             <tr><td>∧</td><td>&</td><td>Weak Meet</td><td>Conjunction (⊓)</td></tr>
             <tr><td>∨</td><td>|</td><td>Weak Join</td><td>Disjunction (⊔)</td></tr>
-            
             <tr><td>⊥</td><td>0 / BOT</td><td>Bottom</td><td>Absolute False (0, 1)</td></tr>
             <tr><td>⊤</td><td>1 / TOP</td><td>Top</td><td>Absolute True (1, 0)</td></tr>
         </table>
@@ -544,7 +579,6 @@ class MainWindow(QMainWindow):
             <li><b>Negation (¬):</b> //(t, f) = (f, t)</li>
             <li><b>Weak Meet (⊓):</b> (t1, f1) ⊓ (t2, f2) = (t1 ∧ t2, f1 ∨ f2)</li>
             <li><b>Weak Join (⊔):</b> (t1, f1) ⊔ (t2, f2) = (t1 ∨ t2, f1 ∧ f2)</li>
-            <li><b>Residue Implication (⇒):</b> (t1, f1) ⇒ (t2, f2) = ((t1 → t2) ∧ (f2 → f1), t1 ∧ f2)</li>
             <li><b>Residue Meet (⊙):</b> Used for Diamond.<br> (t1, f1) ⊙ (t2, f2) = (t1 ∧ t2, (t1→f2) ∧ (t2→f1))</li>
         </ul>
 
@@ -554,15 +588,15 @@ class MainWindow(QMainWindow):
             <li><b>Box ([a]φ):</b> ¬⟨a⟩¬φ</li>
         </ul>
         
-        <h4 style='color:{c_head};'>Model Validity</h4>
-        <p>A formula φ is <b>Valid</b> in Model M iff for all worlds w, (M, w ⊨ φ) = (1, 0).</p>
+        <h4 style='color:{c_head};'>PLTS Validity</h4>
+        <p>A formula φ is <b>Valid</b> in PLTS M iff for all statess w, (M, w ⊨ φ) = (1, 0).</p>
         </div>
         """
         QMessageBox.information(self, "Definitions", msg)
 
     def init_tree_categories(self) -> None:
         """Creates the top-level category items in the Tree Widget."""
-        categories = ["Lattices", "Residuated Lattices", "Twist Structures", "Worlds", "Models"]
+        categories = ["Lattices", "Residuated Lattices", "Twist Structures", "States", "PLTSs"]
         for cat in categories:
             item = QTreeWidgetItem(self.tree)
             item.setText(0, cat)
@@ -578,32 +612,32 @@ class MainWindow(QMainWindow):
         new_menu.addAction("Lattice").triggered.connect(self.create_new_lattice)
         new_menu.addAction("Residuated Lattice").triggered.connect(self.create_new_residuated_lattice)
         new_menu.addAction("Twist Structure").triggered.connect(self.create_new_twist_structure)
-        new_menu.addAction("World").triggered.connect(self.create_new_world)
-        new_menu.addAction("Model").triggered.connect(self.create_new_model)
+        new_menu.addAction("State").triggered.connect(self.create_new_world)
+        new_menu.addAction("PLTS").triggered.connect(self.create_new_model)
 
         # --- LOAD MENU ---
         load_menu = menu_bar.addMenu("Load")
         load_menu.addAction("Lattice").triggered.connect(lambda: self.load_specific_object("Lattice", "lattices", "name"))
         load_menu.addAction("Residuated Lattice").triggered.connect(lambda: self.load_specific_object("Residuated Lattice", "residuated_lattices", "name_residuated_lattice"))
         load_menu.addAction("Twist Structure").triggered.connect(lambda: self.load_specific_object("Twist Structure", "twist_structures", "name"))
-        load_menu.addAction("World").triggered.connect(lambda: self.load_specific_object("World", "worlds", "world_name"))
-        load_menu.addAction("Model").triggered.connect(lambda: self.load_specific_object("Model", "models", "model_name"))
+        load_menu.addAction("State").triggered.connect(lambda: self.load_specific_object("World", "worlds", "world_name"))
+        load_menu.addAction("PLTS").triggered.connect(lambda: self.load_specific_object("Model", "models", "model_name"))
         
         # --- DELETE MENU ---
         del_menu = menu_bar.addMenu("Delete")
         del_menu.addAction("Lattice").triggered.connect(lambda: self.delete_specific_object("Lattice", "lattices", "name"))
         del_menu.addAction("Residuated Lattice").triggered.connect(lambda: self.delete_specific_object("Residuated Lattice", "residuated_lattices", "name_residuated_lattice"))
         del_menu.addAction("Twist Structure").triggered.connect(lambda: self.delete_specific_object("Twist Structure", "twist_structures", "name"))
-        del_menu.addAction("World").triggered.connect(lambda: self.delete_specific_object("World", "worlds", "world_name"))
-        del_menu.addAction("Model").triggered.connect(lambda: self.delete_specific_object("Model", "models", "model_name"))
+        del_menu.addAction("State").triggered.connect(lambda: self.delete_specific_object("World", "worlds", "world_name"))
+        del_menu.addAction("PLTS").triggered.connect(lambda: self.delete_specific_object("Model", "models", "model_name"))
         
         # --- SEE MENU ---
         see_menu = menu_bar.addMenu("See")
         see_menu.addAction("Lattices in File").triggered.connect(lambda: self.see_objects_in_file("lattices", "name"))
         see_menu.addAction("Residuated Lattices in File").triggered.connect(lambda: self.see_objects_in_file("residuated_lattices", "name_residuated_lattice"))
         see_menu.addAction("Twist Structures in File").triggered.connect(lambda: self.see_objects_in_file("twist_structures", "name"))
-        see_menu.addAction("Worlds in File").triggered.connect(lambda: self.see_objects_in_file("worlds", "world_name"))
-        see_menu.addAction("Models in File").triggered.connect(lambda: self.see_objects_in_file("models", "model_name"))
+        see_menu.addAction("States in File").triggered.connect(lambda: self.see_objects_in_file("worlds", "world_name"))
+        see_menu.addAction("PLTSs in File").triggered.connect(lambda: self.see_objects_in_file("models", "model_name"))
         
         # --- VIEW MENU (Dark Mode) ---
         view_menu = menu_bar.addMenu("View")
@@ -672,7 +706,7 @@ class MainWindow(QMainWindow):
         elif type_str == "World": self.worlds[name] = obj
         elif type_str == "Model": self.models[name] = obj
         
-        cat_map = {"Lattice": "Lattices", "Residuated Lattice": "Residuated Lattices", "Twist Structure": "Twist Structures", "World": "Worlds", "Model": "Models"}
+        cat_map = {"Lattice": "Lattices", "Residuated Lattice": "Residuated Lattices", "Twist Structure": "Twist Structures", "World": "States", "Model": "PLTSs"}
         cat = cat_map.get(type_str)
         if cat and cat in self.tree_categories:
             parent = self.tree_categories[cat]
@@ -760,7 +794,6 @@ class MainWindow(QMainWindow):
              self._recursive_register(obj.twist_structure)
 
     def load_specific_object(self, ui_category: str, json_key: str, name_key: str) -> None:
-        # Correct filename map
         filename_map = {
             "Lattice": "json_files/lattices.json",
             "Residuated Lattice": "json_files/residuated_lattices.json",
@@ -769,19 +802,21 @@ class MainWindow(QMainWindow):
             "Model": "json_files/models.json"
         }
         
-        # Use correct dictionary lookup
         fname = filename_map.get(ui_category)
         
         if not fname: 
             print(f"Error: Unknown category {ui_category}")
             return
+        
+        name_map = {"Model": "PLTS", "World": "State"}
+        display_name = name_map.get(ui_category, ui_category)
 
         names = JSONHandler.get_names_from_json(fname, json_key, name_key)
         if not names:
-            QMessageBox.information(self, "Load", f"No objects found in {fname}.")
+            QMessageBox.information(self, f"Load {display_name}", f"No objects found in {fname}.")
             return
 
-        dialog = MultiSelectDialog(f"Load {ui_category}", names, self)
+        dialog = MultiSelectDialog(f"Load {display_name}", names, self)
         if dialog.exec():
             for selected_name in dialog.get_selected_items():
                 if self.is_object_loaded(ui_category, selected_name): continue
@@ -820,7 +855,9 @@ class MainWindow(QMainWindow):
         if not fname: return
 
         names = JSONHandler.get_names_from_json(fname, json_key, name_key)
-        dialog = MultiSelectDialog(f"Delete {ui_category}", names, self)
+        name_map = {"Model": "PLTS", "World": "State"}
+        display_name = name_map.get(ui_category, ui_category)
+        dialog = MultiSelectDialog(f"Delete {display_name}", names, self)
         if dialog.exec():
             to_delete = dialog.get_selected_items()
             if not to_delete: return
@@ -832,8 +869,8 @@ class MainWindow(QMainWindow):
                     "Lattice": (JSONHandler.delete_lattice_from_json, "Lattices"),
                     "Residuated Lattice": (JSONHandler.delete_residuated_lattice_from_json, "Residuated Lattices"),
                     "Twist Structure": (JSONHandler.delete_twist_structure_from_json, "Twist Structures"),
-                    "World": (JSONHandler.delete_world_from_json, "Worlds"),
-                    "Model": (JSONHandler.delete_model_from_json, "Models")
+                    "World": (JSONHandler.delete_world_from_json, "States"),
+                    "Model": (JSONHandler.delete_model_from_json, "PLTSs")
                 }
                 
                 handler, tree_cat = config[ui_category]
@@ -942,15 +979,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "Load Twist Structures first.")
             return
         
-        # Pass self.worlds dict
         dialog = NewModelDialog(self.twist_structures, self.worlds, self.props, self)
         
         if dialog.exec():
-            name, ts_name, w_names, init_name, props, rel_data_dict = dialog.get_data()
+            name, ts_name, w_names, props, rel_data_dict = dialog.get_data()
             try:
                 ts = self.twist_structures[ts_name]
                 selected_worlds_objs = {self.worlds[wn] for wn in w_names}
-                initial_w_obj = self.worlds[init_name]
                 
                 final_rels = {}
                 for action, matrix in rel_data_dict.items():
@@ -965,7 +1000,7 @@ class MainWindow(QMainWindow):
                                     tgt_obj = self.worlds[tgt_str]
                                     final_rels[action][src_obj][tgt_obj] = weight
 
-                m = Model(name, ts, selected_worlds_objs, initial_w_obj, final_rels, props)
+                m = Model(name, ts, selected_worlds_objs, final_rels, props)
                 
                 if JSONHandler.save_model_to_json("json_files/models.json", m):
                     self.register_object(name, m, "Model")
@@ -983,13 +1018,11 @@ class MainWindow(QMainWindow):
         if not parent: return
         cat, name = parent.text(0), item.text(0)
         
-        # Reset Buttons
         self.btn_hasse.setEnabled(False)
         self.btn_visualize_model.setEnabled(False)
         
         html = ""
 
-        # Helper to clean tuple strings
         def clean_str(obj):
             return str(obj).replace("'", "")
         
@@ -1065,27 +1098,15 @@ class MainWindow(QMainWindow):
             if count == 0: html += f"<i style='color:{c_sub};'>(Reflexive only)</i>"
             html += "</div><br>"
             
-            html += "<b>Information Ordering (≤<sub>k</sub>):</b><br>"
-            sorted_info = sorted(list(ts.qntt_info_relation), key=lambda x: (str(x[0]), str(x[1])))
-            count = 0
-            html += "<div style='font-family:monospace; font-size:11px;'>"
-            for a, b in sorted_info:
-                if a != b: 
-                    html += f"{clean_str(a)} ≤<sub>k</sub> {clean_str(b)}<br>"
-                    count += 1
-            if count == 0: html += f"<i style='color:{c_sub};'>(Reflexive only)</i>"
-            html += "</div>"
-            
-        elif cat == "Worlds" and name in self.worlds:
+        elif cat == "States" and name in self.worlds:
             w = self.worlds[name]
-            html += f"<h3 style='color:{c_info};'>WORLD: {w.name_long}</h3>"
+            html += f"<h3 style='color:{c_info};'>STATE: {w.name_long}</h3>"
             html += f"<b>Short Name:</b> {w.name_short}<br>"
             if hasattr(w, 'twist_structure') and w.twist_structure:
                 html += f"<b>Twist Structure:</b> {w.twist_structure.name}<br><br>"
             
             html += "<b>Valuations (V):</b><br>"
             if w.assignments:
-                # Border color handling for dark/light
                 border_c = "#555" if self.is_dark_mode else "#ddd"
                 bg_c = "#333" if self.is_dark_mode else "#f2f2f2"
                 
@@ -1097,18 +1118,16 @@ class MainWindow(QMainWindow):
             else:
                 html += f"<i style='color:{c_sub};'>(No assignments)</i>"
             
-        elif cat == "Models" and name in self.models:
+        elif cat == "PLTSs" and name in self.models:
             m = self.models[name]
             self.btn_visualize_model.setEnabled(True)
             
-            html += f"<h3 style='color:{c_err};'>MODEL: {m.name_model}</h3>"
+            html += f"<h3 style='color:{c_err};'>PLTS: {m.name_model}</h3>"
             if hasattr(m, 'twist_structure') and m.twist_structure:
                 html += f"<b>Twist Structure:</b> {m.twist_structure.name}<br>"
             
-            html += f"<b>Initial State:</b> <b style='color:{c_warn};'>{m.initial_state.name_short}</b><br>"
-            
             world_list = [w.name_short for w in m.worlds]
-            html += f"<b>Worlds ({len(world_list)}):</b> {', '.join(sorted(world_list))}<br>"
+            html += f"<b>States ({len(world_list)}):</b> {', '.join(sorted(world_list))}<br>"
             
             action_list = list(m.actions)
             html += f"<b>Actions:</b> {', '.join(sorted(action_list))}<br><br>"
@@ -1146,7 +1165,7 @@ class MainWindow(QMainWindow):
 
     def visualize_current_model(self) -> None:
         item = self.tree.currentItem()
-        if item and item.parent() and item.parent().text(0) == "Models":
+        if item and item.parent() and item.parent().text(0) == "PLTSs":
             model_name = item.text(0)
             if model_name in self.models:
                 try:
@@ -1154,7 +1173,7 @@ class MainWindow(QMainWindow):
                 except Exception as e:
                     QMessageBox.critical(self, "Error", str(e))
         else:
-            QMessageBox.warning(self, "Selection Error", "Please select a Model in the Project Explorer tree to visualize.")
+            QMessageBox.warning(self, "Selection Error", "Please select a PLTS in the Project Explorer tree to visualize.")
 
     def show_current_hasse(self) -> None:
         item = self.tree.currentItem()
@@ -1175,7 +1194,7 @@ class MainWindow(QMainWindow):
             action = menu.addAction(f"Remove {name}")
             if menu.exec(self.tree.viewport().mapToGlobal(pos)) == action:
                 cat_map = {"Lattices": "Lattice", "Residuated Lattices": "Residuated Lattice", 
-                           "Twist Structures": "Twist Structure", "Worlds": "World", "Models": "Model"}
+                           "Twist Structures": "Twist Structure", "States": "World", "PLTSs": "Model"}
                 if cat in cat_map:
                     self.remove_object_from_memory(cat_map[cat], cat, name)
 
@@ -1191,7 +1210,7 @@ class MainWindow(QMainWindow):
             w_name = self.combo_worlds.currentText()
 
             if not m_name or not w_name:
-                QMessageBox.warning(self, "Error", "Select Model and World.")
+                QMessageBox.warning(self, "Error", "Select PLTS and State.")
                 return
 
             model = self.models[m_name]
@@ -1212,7 +1231,7 @@ class MainWindow(QMainWindow):
             
             res_str = str(res).replace("'", "")
             self.result_label.setText(f"Result: <b>{res_str}</b>")
-            self.validity_label.setText("") # Clear validity when evaluating single formula
+            self.validity_label.setText("")
             self.statusBar().showMessage(f"Evaluated in {w_name}: {res_str}", 5000)
 
         except ValueError as ve:
@@ -1231,7 +1250,7 @@ class MainWindow(QMainWindow):
             
             if not f_str or not m_name:
                 self.validity_label.setText("Validity: Error")
-                QMessageBox.warning(self, "Error", "Select Model and enter formula.")
+                QMessageBox.warning(self, "Error", "Select PLTS and enter formula.")
                 return
 
             model = self.models[m_name]
@@ -1251,7 +1270,7 @@ class MainWindow(QMainWindow):
                 unknown = [a for a in root.get_atoms() if a not in world.assignments and a != '0' and a.lower() != 'bot']
                 if unknown:
                     self.validity_label.setText("Validity: Error")
-                    QMessageBox.warning(self, "Error", f"World {world.name_short} missing assignments for: {unknown}")
+                    QMessageBox.warning(self, "Error", f"State {world.name_short} missing assignments for: {unknown}")
                     return
 
                 res = root.evaluate(model, world, twist)
@@ -1271,7 +1290,7 @@ class MainWindow(QMainWindow):
             else:
                 fail_msg = f"{failed_worlds[:3]}..." if len(failed_worlds)>3 else str(failed_worlds)
                 self.validity_label.setText(f"<span style='color:red'>INVALID {val_str}</span> Failed: {fail_msg}")
-                self.statusBar().showMessage(f"Invalid. Failed in {len(failed_worlds)} worlds.", 5000)
+                self.statusBar().showMessage(f"Invalid. Failed in {len(failed_worlds)} states.", 5000)
 
         except Exception as e:
             self.validity_label.setText("Validity: Error")

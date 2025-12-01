@@ -4,7 +4,7 @@ A Python-based graphical toolkit for constructing, visualizing, and analyzing Pa
 
 ## Overview
 
-The **Paraconsistent Logic Editor** is an interactive GUI application designed for researchers and students working with non-classical logics. It allows users to define algebraic foundations (Lattices, Residuated Lattices), construct Paraconsistent Models where transitions and valuations are weighted by truth pairs, and evaluate modal formulas using the algebraic semantics of Twist Structures.
+The **Paraconsistent Logic Editor** is an interactive GUI application designed for researchers and students working with non-classical logics. It allows users to define algebraic foundations (Lattices, Residuated Lattices), construct PLTSs where transitions and valuations are weighted by truth pairs, and evaluate modal formulas using the algebraic semantics of Twist Structures.
 
 ## Features
 
@@ -16,26 +16,26 @@ The **Paraconsistent Logic Editor** is an interactive GUI application designed f
 
 ### 2. Paraconsistent Modeling
 
-- **Batch World Creation** Efficiently create multiple worlds (states) with valuations assigned from the underlying Twist Structure.
+- **Batch State Creation** Efficiently create multiple states with valuations assigned from the underlying Twist Structure.
 - **Weighted Accessibility Relations** Build Kripke-style models where transitions are not just present/absent but carry a **weight** $(t, f)$ from the algebra.
-- **Model Visualization** View models as directed graphs with support for bidirectional edges, self-loops, and clear labeling of actions and weights.
+- **PLTS Visualization** View PLTSs as directed graphs with support for bidirectional edges, self-loops, and clear labeling of actions and weights.
 
 ### 3. Logic Evaluation & Analysis
 
-- **Formula Parser** Evaluate complex formulas using the specific semantics of Paraconsistent Modal Logic. Supported operators include:
+- **Formula Parser** Interpret complex formulas using the specific semantics of Paraconsistent Modal Logic. Supported operators include:
 
   - **Modal:** Box (`[]`), Diamond (`<>` - weighted by relation)
-  - **Lattice:** Weak Meet (`&`), Weak Join (`|`), Residuated Implication (`=>`)
+  - **Lattice:** Weak Meet (`&`), Weak Join (`|`)
   - **Material:** Material Implication (`->`), Material Equivalence (`<->`)
   - **Unary:** Paraconsistent Negation (`~`)
   - **Constants:** Top (`1`), Bottom (`0`)
 
-- **Model Validity Checking** Automatically verify if a formula is **Valid** (evaluates to Absolute True `(1,0)` in all worlds). The system provides specific counter-examples for invalid formulas.
+- **PLTS Validity Checking** Automatically verify if a formula is **Valid** (interprets to Absolute True `(1,0)` in all states). The system provides specific counter-examples for invalid formulas.
 
 ### 4. User Interface
 
 - **Dark Mode** Toggle between Light and Dark themes for comfortable viewing in different lighting conditions.
-- **JSON Persistence** Save and Load your Lattices, Structures, Worlds, and Models to JSON files to preserve your workspace.
+- **JSON Persistence** Save and Load your Lattices, Structures, States, and PLTSs to JSON files to preserve your workspace.
 - **Definitions & Legend** Built-in reference guides for mathematical definitions and logic symbols.
 
 ## Installation

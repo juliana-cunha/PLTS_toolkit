@@ -31,7 +31,6 @@ class Model:
         name_model: str,
         twist_structure: Any,
         worlds: Set[World],
-        initial_state: World,
         # Dict[Action, Dict[SourceWorld, Dict[TargetWorld, WeightPair]]]
         accessibility_relations: Optional[Dict[str, Dict[World, Dict[World, Tuple[str, str]]]]] = None,
         props: Optional[Set[str]] = None,
@@ -44,7 +43,6 @@ class Model:
         self.name_model = name_model
         self.twist_structure = twist_structure
         self.worlds = worlds
-        self.initial_state = initial_state
         self.props = props if props is not None else set()
         self.actions = actions if actions is not None else set()
 
@@ -94,10 +92,10 @@ class Model:
                 print(f"Action '{action}' not found.")
                 return
             actions_to_draw = [action]
-            title = f"Model: {self.name_model} (Action: {action})"
+            title = f"PLTS: {self.name_model} (Action: {action})"
         else:
             actions_to_draw = sorted(list(self.actions))
-            title = f"Model: {self.name_model}"
+            title = f"PLTS: {self.name_model}"
 
         # 1. Aggregate Data
         edge_data = defaultdict(list)
@@ -118,7 +116,7 @@ class Model:
         
         NODE_SIZE = 2500
         
-        node_colors = ["#ff9999" if n == self.initial_state.name_short else "#99ccff" for n in G.nodes()]
+        node_colors = "#99ccff"
         nx.draw_networkx_nodes(G, pos, node_size=NODE_SIZE, node_color=node_colors, edgecolors="black", linewidths=1.5)
         nx.draw_networkx_labels(G, pos, font_size=10, font_weight="bold")
 

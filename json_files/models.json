@@ -32,7 +32,6 @@
                     }
                 }
             },
-            "initial_state": "world1_B2",
             "props": [
                 "q",
                 "r",
@@ -84,7 +83,6 @@
                     }
                 }
             },
-            "initial_state": "world1_Luk",
             "props": [
                 "q",
                 "r",

@@ -1,8 +1,7 @@
 """
 JSON Handler Module.
 
-Handles persistence of Lattices, Residuated Lattices, Twist Structures, Worlds, Models,
-and User Configuration.
+Handles persistence of Lattices, Residuated Lattices, Twist Structures, Worlds and Models.
 """
 
 import json
@@ -325,7 +324,7 @@ class JSONHandler:
                                                 rels[act][src_w][w_map[tgt_name]] = top_val
 
                         return Model(
-                            model_name, ts, w_set, w_map.get(m.get("initial_state")), 
+                            model_name, ts, w_set,
                             rels, set(m.get('props', [])), set(raw_rels.keys())
                         )
                     except Exception as e: 
@@ -360,7 +359,6 @@ class JSONHandler:
                 "twist_structure_name": new_model.twist_structure.name,
                 "worlds": [w.name_long for w in new_model.worlds],
                 "accessibility_relations": acc_json,
-                "initial_state": new_model.initial_state.name_long,
                 "props": list(new_model.props)
             })
             data['models'] = m_list

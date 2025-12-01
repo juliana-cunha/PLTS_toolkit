@@ -20,7 +20,7 @@ class NewModelDialog(QDialog):
         parent: Optional[QWidget] = None
     ):
         super().__init__(parent)
-        self.setWindowTitle("Create New Model")
+        self.setWindowTitle("Create New PLTS")
         self.resize(850, 700)
         
         self.twist_structures = twist_structures_dict
@@ -47,7 +47,7 @@ class NewModelDialog(QDialog):
         # Tab 1
         self.tab_general = QWidget()
         self.setup_general_tab()
-        self.tabs.addTab(self.tab_general, "1. General & Worlds")
+        self.tabs.addTab(self.tab_general, "1. General & States")
 
         # Tab 2
         self.tab_relations = QWidget()
@@ -65,7 +65,7 @@ class NewModelDialog(QDialog):
         form = QFormLayout()
         
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Model Name")
+        self.name_input.setPlaceholderText("PLTS Name")
         
         self.combo_ts = QComboBox()
         self.combo_ts.addItems(self.ts_names)
@@ -80,17 +80,11 @@ class NewModelDialog(QDialog):
         form.addRow("Actions:", self.actions_input)
         layout.addLayout(form)
 
-        layout.addWidget(QLabel("Select Worlds (Filtered by Twist Structure):"))
+        layout.addWidget(QLabel("Select States (Filtered by Twist Structure):"))
         self.list_worlds = QListWidget()
         
         self.list_worlds.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.list_worlds.itemSelectionChanged.connect(self.update_initial_state_combo)
         layout.addWidget(self.list_worlds)
-
-        form2 = QFormLayout()
-        self.combo_initial = QComboBox()
-        form2.addRow("Initial State:", self.combo_initial)
-        layout.addLayout(form2)
         
         if self.ts_names: self.on_ts_changed(0)
 
@@ -129,30 +123,18 @@ class NewModelDialog(QDialog):
     def filter_worlds_by_ts(self, ts_name: str) -> None:
         """Only show worlds that are associated with the selected Twist Structure."""
         self.list_worlds.clear()
-        self.combo_initial.clear()
         
         compatible_worlds = []
         for w_name, world_obj in self.worlds_dict.items():
-            # Check if world's TS matches the selected TS
             if world_obj.twist_structure.name == ts_name:
                 compatible_worlds.append(w_name)
         
         self.list_worlds.addItems(sorted(compatible_worlds))
         
         if not compatible_worlds and self.worlds_dict:
-            # Hint to user if everything disappeared
-            self.list_worlds.setToolTip("No worlds found for this Twist Structure.")
+            self.list_worlds.setToolTip("No states found for this Twist Structure.")
         else:
             self.list_worlds.setToolTip("")
-
-    def update_initial_state_combo(self) -> None:
-        selected = [item.text() for item in self.list_worlds.selectedItems()]
-        curr = self.combo_initial.currentText()
-        self.combo_initial.blockSignals(True)
-        self.combo_initial.clear()
-        self.combo_initial.addItems(selected)
-        if curr in selected: self.combo_initial.setCurrentText(curr)
-        self.combo_initial.blockSignals(False)
 
     def parse_actions(self) -> List[str]:
         return [x.strip() for x in self.actions_input.text().split(',') if x.strip()]
@@ -250,13 +232,13 @@ class NewModelDialog(QDialog):
 
     def validate_and_accept(self) -> None:
         if not self.name_input.text().strip():
-            QMessageBox.warning(self, "Error", "Model Name required.")
+            QMessageBox.warning(self, "Error", "PLTS Name required.")
             return
         if not self.combo_ts.currentText():
             QMessageBox.warning(self, "Error", "Twist Structure required.")
             return
         if not self.list_worlds.selectedItems():
-            QMessageBox.warning(self, "Error", "Select at least one World.")
+            QMessageBox.warning(self, "Error", "Select at least one State.")
             return
         if not self.parse_actions():
             QMessageBox.warning(self, "Error", "Define actions.")
@@ -271,9 +253,8 @@ class NewModelDialog(QDialog):
         ts_name = self.combo_ts.currentText()
         selected_items = self.list_worlds.selectedItems()
         world_names = [item.text() for item in selected_items]
-        initial_name = self.combo_initial.currentText()
         
         if self.current_action_context:
             self.save_current_table_to_data(self.current_action_context)
 
-        return name, ts_name, world_names, initial_name, self.props, self.relations_data
+        return name, ts_name, world_names, self.props, self.relations_data

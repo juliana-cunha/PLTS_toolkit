@@ -52,7 +52,7 @@ class NewLatticeDialog(QDialog):
         form.addRow("Elements:", self.elements_input)
         layout.addLayout(form)
 
-        self.gen_btn = QPushButton("Generate Pairs")
+        self.gen_btn = QPushButton("Define an order")
         self.gen_btn.clicked.connect(self.populate_lists)
         layout.addWidget(self.gen_btn)
         
@@ -93,7 +93,6 @@ class NewLatticeDialog(QDialog):
                 combo = QComboBox()
                 combo.addItems(elements)
                 if elements[r] == elements[c]:
-                     # Try to find a 1 or top element if exists, or just leave default
                      pass 
                 self.table_imp.setCellWidget(r, c, combo)
 

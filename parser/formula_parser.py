@@ -5,15 +5,14 @@ This module handles the tokenization, parsing, and evaluation of logical formula
 in a Paraconsistent Modal Logic context (Twist Structures).
 
 Definitions & Abbreviations:
-- &  : Weak Meet (Conjunction) [sqcap]
-- |  : Weak Join (Disjunction) [sqcup]
-- => : Residuated Implication 
-- -> : Material Implication (~A | B)
-- <-> : Material Equivalence
-- [] : Box
-- <> : Diamond (Weighted)
-- 1/TOP : Top (True)
-- 0/BOT : Bottom (False)
+- &   : Weak Meet (Conjunction)
+- |   : Weak Join (Disjunction)
+- ->  : Material Implication defined as ~A | B
+- <-> : Material Equivalence defined as (A -> B) & (B -> A)
+- []  : Box defined as ~<a>~A
+- <>  : Diamond (Weighted)
+- 1/TOP : Top (True) (1, 0)
+- 0/BOT : Bottom (False) (0, 1)
 """
 
 from abc import ABC, abstractmethod
@@ -45,24 +44,28 @@ class Lexer:
             self.advance()
         return result
 
-    def get_next_token(self) -> Tuple[str, Optional[str]]:
+    def get_next_token(self) -> Tuple[str, Optional[str], int]:
+        """Returns (Token Type, Token Value, Start Position)"""
         while self.current_char is not None:
             if self.current_char.isspace():
                 self.skip_whitespace()
                 continue
             
+            # Track start position for error reporting
+            start_pos = self.pos
+
             # Modal Box [a]
             if self.current_char == '[':
                 self.advance()
                 if self.current_char == ']':
-                    raise ValueError("Box operator '[]' requires an action identifier (e.g., [a]).")
+                    raise ValueError(f"Error at index {start_pos}: Box operator '[]' requires an action identifier.")
                 action = self.get_identifier()
                 if not action:
-                    raise ValueError("Invalid or missing action identifier inside Box operator.")
+                    raise ValueError(f"Error at index {start_pos}: Invalid action identifier inside Box operator.")
                 if self.current_char == ']':
                     self.advance()
-                    return ('BOX', action)
-                raise ValueError("Expected ']' after action")
+                    return ('BOX', action, start_pos)
+                raise ValueError(f"Error at index {self.pos}: Expected ']' after action.")
 
             # Modal Diamond <a>
             if self.current_char == '<':
@@ -73,45 +76,37 @@ class Lexer:
                     self.advance()
                     if self.current_char == '>':
                         self.advance()
-                        return ('MAT_IFF', '<->')
-                    raise ValueError("Expected '>' after '<-'")
+                        return ('MAT_IFF', '<->', start_pos)
+                    raise ValueError(f"Error at index {start_pos}: Expected '>' after '<-'.")
 
                 # Modal Diamond <> check
                 if self.current_char == '>':
-                    raise ValueError("Diamond operator '<>' requires an action identifier (e.g., <a>).")
+                    raise ValueError(f"Error at index {start_pos}: Diamond operator '<>' requires an action identifier.")
 
                 action = self.get_identifier()
                 if not action:
-                     raise ValueError("Invalid or missing action identifier inside Diamond operator.")
+                     raise ValueError(f"Error at index {start_pos}: Invalid action identifier inside Diamond operator.")
 
                 if self.current_char == '>':
                     self.advance()
-                    return ('DIAMOND', action)
-                raise ValueError("Expected '>' after action")
+                    return ('DIAMOND', action, start_pos)
+                raise ValueError(f"Error at index {self.pos}: Expected '>' after action.")
             
-            # Residuated Implication =>
-            if self.current_char == '=':
-                self.advance()
-                if self.current_char == '>':
-                    self.advance()
-                    return ('IMPLIES', '=>')
-                raise ValueError(f"Unexpected character '='. Did you mean '=>'?")
-
-            # Atoms (and Top)
+            # Atoms (and TOP and BOT)
             if self.current_char.isalnum():
                 val = self.get_identifier()
                 if val == '1' or val.upper() == 'TOP':
-                    return ('ATOM', 'TOP')
+                    return ('ATOM', 'TOP', start_pos)
                 if val == '0' or val.upper() == 'BOT':
-                    return ('ATOM', 'BOT')
-                return ('ATOM', val)
+                    return ('ATOM', 'BOT', start_pos)
+                return ('ATOM', val, start_pos)
             
             if self.current_char == '1': 
                 self.advance()
-                return ('ATOM', 'TOP')
+                return ('ATOM', 'TOP', start_pos)
             if self.current_char == '0':
                 self.advance()
-                return ('ATOM', 'BOT')
+                return ('ATOM', 'BOT', start_pos)
 
             # Connectives
             char_map = {
@@ -125,19 +120,19 @@ class Lexer:
             if self.current_char in char_map:
                 token = char_map[self.current_char]
                 self.advance()
-                return token
+                return (token[0], token[1], start_pos)
             
             # Material Implication ->
             if self.current_char == '-':
                 self.advance()
                 if self.current_char == '>':
                     self.advance()
-                    return ('MAT_IMPLIES', '->')
-                raise ValueError("Expected '>' after '-'")
+                    return ('MAT_IMPLIES', '->', start_pos)
+                raise ValueError(f"Error at index {start_pos}: Expected '>' after '-'.")
             
-            raise ValueError(f"Unknown character: {self.current_char}")
+            raise ValueError(f"Unknown character at index {start_pos}: {self.current_char}")
         
-        return ('EOF', None)
+        return ('EOF', None, self.pos)
 
 
 # ==========================================
@@ -164,6 +159,7 @@ class Atom(ASTNode):
         return {self.name}
 
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
+        # TOP/BOT Definitions
         if self.name == 'BOT' or self.name == '0':
             return (twist.residuated_lattice.bottom, twist.residuated_lattice.top)
         
@@ -173,17 +169,23 @@ class Atom(ASTNode):
         if self.name in world.assignments:
             val_str = world.assignments[self.name]
             try:
-                if val_str.startswith('('): return literal_eval(val_str)
+                if val_str.strip().startswith('('): 
+                    val = literal_eval(val_str)
+                    if not isinstance(val, tuple) or len(val) != 2:
+                        raise ValueError(f"Atom '{self.name}' has invalid value {val}. Expected a pair (t, f).")
+                    return val
                 return (val_str, val_str)
-            except:
+            except Exception:
                 return (val_str, val_str)
-        raise ValueError(f"Atom '{self.name}' not found in world.")
+                
+        raise ValueError(f"Undefined Atom: '{self.name}' is not assigned in state '{world.name_short}'.")
 
 
 class Not(ASTNode):
     def __init__(self, child: ASTNode):
         self.child = child
     def get_atoms(self) -> Set[str]: return self.child.get_atoms()
+    # Negation Semantics
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         return twist.negation(self.child.evaluate(model, world, twist))
 
@@ -192,6 +194,7 @@ class And(ASTNode):
     def __init__(self, left: ASTNode, right: ASTNode):
         self.left, self.right = left, right
     def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
+    # Conjunction Semantics (Weak Meet)
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         return twist.weak_meet(self.left.evaluate(model, world, twist), self.right.evaluate(model, world, twist))
 
@@ -200,6 +203,7 @@ class Or(ASTNode):
     def __init__(self, left: ASTNode, right: ASTNode):
         self.left, self.right = left, right
     def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
+    # Disjunction Semantics (Weak Join)
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         return twist.weak_join(self.left.evaluate(model, world, twist), self.right.evaluate(model, world, twist))
 
@@ -208,6 +212,7 @@ class MaterialImplies(ASTNode):
     def __init__(self, left: ASTNode, right: ASTNode):
         self.left, self.right = left, right
     def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
+    # Material Implication Semantics (~A | B)
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         val_l = self.left.evaluate(model, world, twist)
         not_l = twist.negation(val_l)
@@ -219,6 +224,7 @@ class MaterialIff(ASTNode):
     def __init__(self, left: ASTNode, right: ASTNode):
         self.left, self.right = left, right
     def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
+    # Material Equivalence Semantics ((A->B) & (B->A))
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         val_l = self.left.evaluate(model, world, twist)
         val_r = self.right.evaluate(model, world, twist)
@@ -232,24 +238,6 @@ class MaterialIff(ASTNode):
         return twist.weak_meet(imp_lr, imp_rl)
 
 
-class Implies(ASTNode):
-    def __init__(self, left: ASTNode, right: ASTNode):
-        self.left, self.right = left, right
-    def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
-    def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
-        return twist.implication(self.left.evaluate(model, world, twist), self.right.evaluate(model, world, twist))
-
-
-class Iff(ASTNode):
-    def __init__(self, left: ASTNode, right: ASTNode):
-        self.left, self.right = left, right
-    def get_atoms(self) -> Set[str]: return self.left.get_atoms().union(self.right.get_atoms())
-    def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
-        v1 = self.left.evaluate(model, world, twist)
-        v2 = self.right.evaluate(model, world, twist)
-        return twist.weak_meet(twist.implication(v1, v2), twist.implication(v2, v1))
-
-
 class Diamond(ASTNode):
     """
     Modal Diamond: <a>phi
@@ -259,9 +247,10 @@ class Diamond(ASTNode):
 
     def get_atoms(self) -> Set[str]: return self.child.get_atoms()
 
+    # Diamond Semantics
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         if self.action not in model.actions:
-            raise ValueError(f"Action '{self.action}' is not defined in Model '{model.name_model}'.")
+            raise ValueError(f"Action '{self.action}' is not defined in PLTS '{model.name_model}'.")
         
         targets_map = model.accessibility_relations.get(self.action, {}).get(world, {})
         results = []
@@ -283,6 +272,7 @@ class Box(ASTNode):
 
     def get_atoms(self) -> Set[str]: return self.child.get_atoms()
 
+    # Box Semantics
     def evaluate(self, model: Any, world: Any, twist: Any) -> Tuple[str, str]:
         not_phi = Not(self.child)
         diamond = Diamond(not_phi, self.action)
@@ -302,35 +292,30 @@ class FormulaParser:
         if self.current_token[0] == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
-            raise ValueError(f"Expected {token_type}, got {self.current_token[0]}")
+            pos = self.current_token[2]
+            raise ValueError(f"Syntax Error at index {pos}: Expected {token_type}, got {self.current_token[0]}")
 
     def parse(self) -> ASTNode:
         res = self.iff()
-        if self.current_token[0] != 'EOF': raise ValueError("Unexpected end chars")
+        if self.current_token[0] != 'EOF': 
+            pos = self.current_token[2]
+            raise ValueError(f"Syntax Error at index {pos}: Unexpected characters at end of formula.")
         return res
 
     def iff(self) -> ASTNode:
         node = self.implies()
-        while self.current_token[0] in ('IFF', 'MAT_IFF'):
-            token = self.current_token[0]
-            self.eat(token)
+        while self.current_token[0] == 'MAT_IFF':
+            self.eat('MAT_IFF')
             right = self.implies()
-            if token == 'IFF':
-                node = Iff(node, right)
-            else:
-                node = MaterialIff(node, right)
+            node = MaterialIff(node, right)
         return node
 
     def implies(self) -> ASTNode:
         node = self.expr_sum()
-        while self.current_token[0] in ('IMPLIES', 'MAT_IMPLIES'):
-            token = self.current_token[0]
-            self.eat(token)
+        while self.current_token[0] == 'MAT_IMPLIES':
+            self.eat('MAT_IMPLIES')
             right = self.expr_sum()
-            if token == 'IMPLIES':
-                node = Implies(node, right)
-            else:
-                node = MaterialImplies(node, right)
+            node = MaterialImplies(node, right)
         return node
 
     def expr_sum(self) -> ASTNode:
@@ -352,6 +337,7 @@ class FormulaParser:
     def unary(self) -> ASTNode:
         token = self.current_token[0]
         val = self.current_token[1]
+        start_pos = self.current_token[2]
 
         if token == 'NOT':
             self.eat('NOT')
@@ -370,5 +356,7 @@ class FormulaParser:
         elif token == 'ATOM':
             self.eat('ATOM')
             return Atom(val)
+        elif token == 'EOF':
+            raise ValueError("Unexpected end of formula. Did you forget a closing parenthesis or an atom?")
         else:
-            raise ValueError(f"Unexpected token: {token}")
+            raise ValueError(f"Syntax Error at index {start_pos}: Unexpected token: {token}")

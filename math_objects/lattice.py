@@ -358,13 +358,11 @@ class TwistStructure:
             print(f"Warning: Transitive reduction failed ({e}). Using full graph.")
             TR = G
 
-        # Use Custom Layout
         pos = _compute_hasse_layout(TR)
 
         plt.figure(figsize=(8, 10))
         plt.title(f"Hasse Diagram: {self.name}")
 
-        # Dynamic Node Size
         labels = {node: str(node).replace("'", "") for node in TR.nodes()}
         max_len = max((len(l) for l in labels.values()), default=1)
         node_size = 1000 + (max_len * 300)
