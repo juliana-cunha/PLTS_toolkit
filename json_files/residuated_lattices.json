@@ -5,8 +5,8 @@
             "name_lattice": "Boolean Algebra"
         },
         {
-            "name_residuated_lattice": "Lukasiewicz RL",
-            "name_lattice": "Lukasiewicz"
+            "name_residuated_lattice": "Three-Valued Algebra RL",
+            "name_lattice": "Three-Valued Algebra"
         }
     ]
 }

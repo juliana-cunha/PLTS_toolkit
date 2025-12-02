@@ -2,7 +2,7 @@
 Main Application Module.
 
 This module defines the MainWindow class, which serves as the primary user interface
-for the Paraconsistent Logic Editor.
+for the PLTS Editor.
 """
 
 import sys
@@ -249,7 +249,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         """Initializes the main window and internal storage structures."""
         super().__init__()
-        self.setWindowTitle("Paraconsistent Logic Editor")
+        self.setWindowTitle("PLTS Toolkit")
         self.resize(1100, 750)
         
         self.config_file = "json_files/config.json"

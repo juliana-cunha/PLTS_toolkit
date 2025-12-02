@@ -195,7 +195,7 @@ class Model:
                 dist = math.sqrt(vx**2 + vy**2)
                 if dist == 0: dist = 1 
                 
-                nx_vec, ny_vec = -vy/dist, vx/dist
+                nx_vec, ny_vec = vy/dist, -vx/dist
                 offset = rad * dist * 0.6 
                 lx = mx + nx_vec * offset
                 ly = my + ny_vec * offset

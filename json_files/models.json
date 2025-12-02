@@ -1,92 +1,79 @@
 {
     "models": [
         {
-            "model_name": "model_B2",
-            "twist_structure_name": "Boolean Algebra TS",
+            "model_name": "PLTS1",
+            "twist_structure_name": "Three-Valued Algebra TS",
             "worlds": [
-                "world3_B2",
-                "world1_B2",
-                "world2_B2"
+                "State1",
+                "State0",
+                "State2"
             ],
             "accessibility_relations": {
-                "a2": {
-                    "world1_B2": {
-                        "world3_B2": ["1", "1"]
+                "a": {
+                    "State0": {
+                        "State0": ["1", "0"],
+                        "State1": ["u", "u"],
+                        "State2": ["0", "0"]
                     },
-                    "world2_B2": {
-                        "world1_B2": ["1", "1"],
-                        "world3_B2": ["1", "0"]
+                    "State1": {
+                        "State0": ["1", "0"],
+                        "State1": ["0", "1"],
+                        "State2": ["1", "1"]
                     },
-                    "world3_B2": {
-                        "world3_B2": ["0", "1"]
-                    }
-                },
-                "a1": {
-                    "world1_B2": {
-                        "world1_B2": ["0", "1"],
-                        "world2_B2": ["1", "0"],
-                        "world3_B2": ["1", "0"]
-                    },
-                    "world3_B2": {
-                        "world1_B2": ["1", "1"]
+                    "State2": {
+                        "State0": ["u", "1"]
                     }
                 }
             },
             "props": [
                 "q",
-                "r",
                 "s",
-                "p"
+                "p",
+                "r"
             ]
         },
         {
-            "model_name": "model_Luk",
-            "twist_structure_name": "Lukasiewicz TS",
+            "model_name": "PLTS2",
+            "twist_structure_name": "Boolean Algebra TS",
             "worlds": [
-                "world3_Luk",
-                "world1_Luk",
-                "world2_Luk"
+                "StateC",
+                "StateB",
+                "StateA"
             ],
             "accessibility_relations": {
-                "a3": {
-                    "world2_Luk": {
-                        "world1_Luk": ["1", "1"]
+                "b": {
+                    "StateA": {
+                        "StateB": ["0", "1"],
+                        "StateC": ["1", "0"]
                     },
-                    "world3_Luk": {
-                        "world1_Luk": ["1", "u"],
-                        "world2_Luk": ["u", "1"]
+                    "StateB": {
+                        "StateA": ["1", "0"],
+                        "StateB": ["1", "0"]
+                    },
+                    "StateC": {
+                        "StateB": ["1", "0"]
                     }
                 },
-                "a2": {
-                    "world1_Luk": {
-                        "world2_Luk": ["1", "u"]
+                "a": {
+                    "StateA": {
+                        "StateA": ["1", "0"],
+                        "StateB": ["1", "0"],
+                        "StateC": ["1", "1"]
                     },
-                    "world2_Luk": {
-                        "world1_Luk": ["1", "u"],
-                        "world3_Luk": ["0", "1"]
+                    "StateB": {
+                        "StateA": ["0", "1"],
+                        "StateB": ["0", "0"],
+                        "StateC": ["1", "0"]
                     },
-                    "world3_Luk": {
-                        "world2_Luk": ["0", "0"]
-                    }
-                },
-                "a1": {
-                    "world1_Luk": {
-                        "world1_Luk": ["1", "u"],
-                        "world3_Luk": ["0", "0"]
-                    },
-                    "world2_Luk": {
-                        "world2_Luk": ["u", "0"]
-                    },
-                    "world3_Luk": {
-                        "world1_Luk": ["u", "0"],
-                        "world3_Luk": ["u", "0"]
+                    "StateC": {
+                        "StateB": ["1", "0"]
                     }
                 }
             },
             "props": [
                 "q",
-                "r",
                 "s",
+                "r",
                 "p"
             ]
         }

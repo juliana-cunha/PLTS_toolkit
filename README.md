@@ -1,10 +1,10 @@
-# Paraconsistent Logic Editor
+# PLTS Editor
 
 A Python-based graphical toolkit for constructing, visualizing, and analyzing Paraconsistent Transition Systems (PLTS) based on Twist Structures.
 
 ## Overview
 
-The **Paraconsistent Logic Editor** is an interactive GUI application designed for researchers and students working with non-classical logics. It allows users to define algebraic foundations (Lattices, Residuated Lattices), construct PLTSs where transitions and valuations are weighted by truth pairs, and evaluate modal formulas using the algebraic semantics of Twist Structures.
+The **PLTS Editor** is an interactive GUI application designed for researchers and students working with non-classical logics. It allows users to define algebraic foundations (Lattices, Residuated Lattices), construct PLTSs where transitions and valuations are weighted by truth pairs, and evaluate modal formulas using the algebraic semantics of Twist Structures.
 
 ## Features
 
