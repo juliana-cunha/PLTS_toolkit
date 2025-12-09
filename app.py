@@ -982,7 +982,7 @@ class MainWindow(QMainWindow):
         dialog = NewModelDialog(self.twist_structures, self.worlds, self.props, self)
         
         if dialog.exec():
-            name, ts_name, w_names, props, rel_data_dict = dialog.get_data()
+            name, ts_name, w_names, props, rel_data_dict, description = dialog.get_data()
             try:
                 ts = self.twist_structures[ts_name]
                 selected_worlds_objs = {self.worlds[wn] for wn in w_names}
@@ -1000,7 +1000,7 @@ class MainWindow(QMainWindow):
                                     tgt_obj = self.worlds[tgt_str]
                                     final_rels[action][src_obj][tgt_obj] = weight
 
-                m = Model(name, ts, selected_worlds_objs, final_rels, props)
+                m = Model(name, ts, selected_worlds_objs, final_rels, props, description=description)
                 
                 if JSONHandler.save_model_to_json("json_files/models.json", m):
                     self.register_object(name, m, "Model")
@@ -1123,6 +1123,10 @@ class MainWindow(QMainWindow):
             self.btn_visualize_model.setEnabled(True)
             
             html += f"<h3 style='color:{c_err};'>PLTS: {m.name_model}</h3>"
+
+            if hasattr(m, 'description') and m.description:
+                html += f"<b>Description:</b><br><i style='color:{c_text};'>{m.description}</i><br><br>"
+            
             if hasattr(m, 'twist_structure') and m.twist_structure:
                 html += f"<b>Twist Structure:</b> {m.twist_structure.name}<br>"
             

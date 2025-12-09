@@ -34,7 +34,8 @@ class Model:
         # Dict[Action, Dict[SourceWorld, Dict[TargetWorld, WeightPair]]]
         accessibility_relations: Optional[Dict[str, Dict[World, Dict[World, Tuple[str, str]]]]] = None,
         props: Optional[Set[str]] = None,
-        actions: Optional[Set[str]] = None
+        actions: Optional[Set[str]] = None,
+        description: str = None
     ):
         for world in worlds:
             if not isinstance(world, World):
@@ -45,6 +46,7 @@ class Model:
         self.worlds = worlds
         self.props = props if props is not None else set()
         self.actions = actions if actions is not None else set()
+        self.description = description
 
         # R is stored as a map: R(u, a, v) = weight.
         self.accessibility_relations = defaultdict(lambda: defaultdict(dict))

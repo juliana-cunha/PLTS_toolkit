@@ -23,7 +23,7 @@ class JSONHandler:
         if not os.path.exists(filename) or os.path.getsize(filename) == 0:
             return {}
         try:
-            with open(filename, 'r') as f:
+            with open(filename, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
             print(f"Warning: Failed to load {filename}: {e}")
@@ -325,7 +325,7 @@ class JSONHandler:
 
                         return Model(
                             model_name, ts, w_set,
-                            rels, set(m.get('props', [])), set(raw_rels.keys())
+                            rels, set(m.get('props', [])), set(raw_rels.keys()), description=m.get('description', "")
                         )
                     except Exception as e: 
                         print(f"Error loading model {model_name}: {e}")
@@ -356,6 +356,7 @@ class JSONHandler:
 
             m_list.append({
                 "model_name": new_model.name_model,
+                "description": new_model.description,
                 "twist_structure_name": new_model.twist_structure.name,
                 "worlds": [w.name_long for w in new_model.worlds],
                 "accessibility_relations": acc_json,

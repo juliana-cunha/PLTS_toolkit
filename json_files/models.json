@@ -2,6 +2,7 @@
     "models": [
         {
             "model_name": "PLTS1",
+            "description": "",
             "twist_structure_name": "Three-Valued Algebra TS",
             "worlds": [
                 "State1",
@@ -34,6 +35,7 @@
         },
         {
             "model_name": "PLTS2",
+            "description": "",
             "twist_structure_name": "Boolean Algebra TS",
             "worlds": [
                 "StateC",
@@ -76,6 +78,75 @@
                 "r",
                 "p"
             ]
+        },
+        {
+            "model_name": "Robot",
+            "description": "The following example, adapted from [10, Section 6], models a robot moving along a path while receiving possibly inconsistent information about obstacles. To reflect disagreements between sensors, the model uses two groups: \"positive sensors\", which provide evidence that the path is clear, and \"negative sensors\", which provide evidence that it is obstructed. Each sensor outputs a value in {0, u, 1}, where 0 denotes falsity, 1 truth, and u uncertainty. The Robot PLTS consists of four checkpoints (states) connected by the action \"move\". Each transition is weighted by a pair (tt, ff), where tt represents the evidence from the positive sensors that the path is clear, and ff represents the evidence from the negative sensors that it is obstructed. In addition, the proposition \"Obst\" indicates whether a checkpoint contains an obstacle: it has value (1, 0) only at v3, and (0, 1) elsewhere. For example, interpreting the formula \"Obst \u2192 [move] 0\", which states that the robot should not move from an obstructed state, yields (1, 0) at every state. Hence, the formula is valid in this PLTS.",
+            "twist_structure_name": "Three-Valued Algebra TS",
+            "worlds": [
+                "v3",
+                "v4",
+                "v2",
+                "v1"
+            ],
+            "accessibility_relations": {
+                "move": {
+                    "v1": {
+                        "v2": ["1", "0"],
+                        "v3": ["1", "1"]
+                    },
+                    "v2": {
+                        "v1": ["1", "0"],
+                        "v4": ["u", "0"]
+                    },
+                    "v4": {
+                        "v2": ["u", "0"],
+                        "v3": ["u", "1"]
+                    }
+                }
+            },
+            "props": ["Obst"]
+        },
+        {
+            "model_name": "Game",
+            "description": "The following example, adapted from [12], models a coin-toss game between two players. Player 1 bets on heads and Player 2 on tails. Player 1 tosses a coin and announces either heads or tails, but keeps the actual outcome hidden. If Player 1 announces tails, Player 2 immediately wins. If Player 1 announces heads, Player 2 may pass (Player 1 wins) or challenge (Player 1 reveals the true outcome, and the correct bet wins).From Player 2's perspective, the game is represented by the \"Game\" PLTS, with five states: the starting state (start), two intermediate states (int1, int2), and two terminal winner states (Winner 1, Winner 2). Propositions \"Win1\" and \"Win2\" take value (1,0) only at their respective winner states and (0,1) elsewhere. Player 1's announcements are given by actions \"heads\" and \"tails\", and Player 2's responses are given by actions \"pass\" and \"challenge\". Transitions are weighted in {0, u, 1}^2 to represent Player 2's evidence for and against each action; details appear in [12]. For example, at the start state, the transitions labelled \"heads\" and \"tails\" both carry weight (u,u), reflecting complete uncertainty about the coin toss.The formula [tails] Win2, stating that whenever Player 1 announces tails, Player 2 wins, evaluates to (1,0) at every state and is therefore valid in this PLTS. Another valid formula is [tails] Win2 | [heads]\u27e8pass\u27e9 Win1 | [heads]\u27e8challenge\u27e9 Win2.",
+            "twist_structure_name": "Three-Valued Algebra TS",
+            "worlds": [
+                "int1",
+                "int2",
+                "start",
+                "Winner2",
+                "Winner1"
+            ],
+            "accessibility_relations": {
+                "heads": {
+                    "int2": {
+                        "Winner1": ["1", "0"]
+                    },
+                    "start": {
+                        "int1": ["u", "u"]
+                    }
+                },
+                "pass": {
+                    "int1": {
+                        "Winner1": ["u", "u"]
+                    }
+                },
+                "challenge": {
+                    "int1": {
+                        "int2": ["1", "u"]
+                    }
+                },
+                "tails": {
+                    "int2": {
+                        "Winner2": ["1", "0"]
+                    },
+                    "start": {
+                        "Winner2": ["u", "u"]
+                    }
+                }
+            },
+            "props": ["Win1", "Win2"]
         }
     ]
 }

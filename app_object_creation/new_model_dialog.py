@@ -7,7 +7,7 @@ from typing import List, Set, Dict, Tuple, Optional, Any
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QDialogButtonBox, 
     QComboBox, QListWidget, QAbstractItemView, QTabWidget, QWidget, 
-    QTableWidget, QLabel, QMessageBox, QHBoxLayout
+    QTableWidget, QLabel, QMessageBox, QHBoxLayout, QTextEdit
 )
 from ast import literal_eval
 
@@ -66,6 +66,10 @@ class NewModelDialog(QDialog):
         
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("PLTS Name")
+
+        self.desc_input = QTextEdit()
+        self.desc_input.setPlaceholderText("Optional description of the model...")
+        self.desc_input.setMaximumHeight(1000)
         
         self.combo_ts = QComboBox()
         self.combo_ts.addItems(self.ts_names)
@@ -76,6 +80,7 @@ class NewModelDialog(QDialog):
         self.actions_input.editingFinished.connect(self.parse_actions)
 
         form.addRow("Name:", self.name_input)
+        form.addRow("Description:", self.desc_input)
         form.addRow("Twist Structure:", self.combo_ts)
         form.addRow("Actions:", self.actions_input)
         layout.addLayout(form)
@@ -248,8 +253,9 @@ class NewModelDialog(QDialog):
             self.save_current_table_to_data(self.current_action_context)
         self.accept()
 
-    def get_data(self) -> Tuple[str, str, List[str], str, Set[str], Dict]:
+    def get_data(self) -> Tuple[str, str, List[str], str, Set[str], Dict, str]:
         name = self.name_input.text().strip()
+        description = self.desc_input.toPlainText().strip()
         ts_name = self.combo_ts.currentText()
         selected_items = self.list_worlds.selectedItems()
         world_names = [item.text() for item in selected_items]
@@ -257,4 +263,4 @@ class NewModelDialog(QDialog):
         if self.current_action_context:
             self.save_current_table_to_data(self.current_action_context)
 
-        return name, ts_name, world_names, self.props, self.relations_data
+        return name, ts_name, world_names, self.props, self.relations_data, description
