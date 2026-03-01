@@ -270,6 +270,42 @@ class TwistStructure:
                 if rl.is_less_than_or_equal(p1[0], p2[0]) and rl.is_less_than_or_equal(p1[1], p2[1]):
                     relation.add((p1, p2))
         return relation
+    
+    def toposort_twist_elements(self):
+        """
+        Returns elements of a TwistStructure ordered bottom → top
+        according to the truth order. Incomparable elements are allowed.
+        """
+        from collections import defaultdict, deque
+
+        successors = defaultdict(set)
+        predecessors = defaultdict(set)
+
+        for a, b in self.truth_relation:
+            if a != b:
+                successors[a].add(b)
+                predecessors[b].add(a)
+
+        for e in self.elements:
+            successors[e]
+            predecessors[e]
+
+        queue = deque(sorted(
+            [e for e in self.elements if not predecessors[e]],
+            key=str
+        ))
+
+        result = []
+
+        while queue:
+            e = queue.popleft()
+            result.append(e)
+            for s in sorted(successors[e], key=str):
+                predecessors[s].remove(e)
+                if not predecessors[s]:
+                    queue.append(s)
+
+        return result
 
     def implication(self, pair1: Tuple[str, str], pair2: Tuple[str, str]) -> Tuple[str, str]:
         rl = self.residuated_lattice

@@ -46,7 +46,7 @@ class NewLatticeDialog(QDialog):
         form = QFormLayout()
         self.name_input = QLineEdit()
         self.elements_input = QLineEdit()
-        self.elements_input.setPlaceholderText("e.g: 0, 1, a, b")
+        self.elements_input.setPlaceholderText("separated by comma, e.g., 0,1,a,b")
         self.elements_input.returnPressed.connect(self.populate_lists)
         form.addRow("Name:", self.name_input)
         form.addRow("Elements:", self.elements_input)
@@ -58,6 +58,7 @@ class NewLatticeDialog(QDialog):
         
         layout.addWidget(QLabel("Relations (a ≤ b):"))
         self.rel_list = QListWidget()
+        self.rel_list.itemChanged.connect(self.on_relation_changed)
         layout.addWidget(self.rel_list)
 
     def setup_imp_tab(self):
@@ -95,6 +96,36 @@ class NewLatticeDialog(QDialog):
                 if elements[r] == elements[c]:
                      pass 
                 self.table_imp.setCellWidget(r, c, combo)
+    
+    def on_relation_changed(self, item: QListWidgetItem):
+        clean = item.text().replace('(', '').replace(')', '').replace("'", "")
+        a, b = [x.strip() for x in clean.split(',')]
+
+        if a == b:
+            return
+
+        opposite = None
+        for i in range(self.rel_list.count()):
+            other = self.rel_list.item(i)
+            clean_other = other.text().replace('(', '').replace(')', '').replace("'", "")
+            x, y = [v.strip() for v in clean_other.split(',')]
+            if x == b and y == a:
+                opposite = other
+                break
+
+        if opposite is None:
+            return
+
+        self.rel_list.blockSignals(True)
+
+        if item.checkState() == Qt.CheckState.Checked:
+            opposite.setCheckState(Qt.CheckState.Unchecked)
+            opposite.setFlags(opposite.flags() & ~Qt.ItemFlag.ItemIsUserCheckable)
+
+        elif item.checkState() == Qt.CheckState.Unchecked:
+            opposite.setFlags(opposite.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+
+        self.rel_list.blockSignals(False)
 
     def validate_and_accept(self):
         if not self.name_input.text().strip():

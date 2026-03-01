@@ -473,7 +473,7 @@ class MainWindow(QMainWindow):
             ("◇", "<a>"), 
             ("¬", "~"), 
             ("▷", "->"),
-            ("◁▷", "<->"),  
+            ("▷◁", "<->"),  
             ("∧", "&"), 
             ("∨", "|"), 
             ("⊥", "0"),
@@ -555,7 +555,7 @@ class MainWindow(QMainWindow):
             <tr><td>◇</td><td>&lt;a&gt;</td><td>Diamond (Possibility)</td><td>&lt;a&gt;A</td></tr>
             <tr><td>¬</td><td>~</td><td>Negation</td><td>¬A</td></tr>
             <tr><td>▷</td><td>-&gt;</td><td>Material Imp.</td><td>¬A ⊔ B</td></tr>
-            <tr><td>◁▷</td><td>&lt;-&gt;</td><td>Material Iff.</td><td>(A ▷ B) ⊓ (B ▷ A)</td></tr>
+            <tr><td>▷◁</td><td>&lt;-&gt;</td><td>Material Iff.</td><td>(A ▷ B) ⊓ (B ▷ A)</td></tr>
             <tr><td>∧</td><td>&</td><td>Weak Meet</td><td>Conjunction (⊓)</td></tr>
             <tr><td>∨</td><td>|</td><td>Weak Join</td><td>Disjunction (⊔)</td></tr>
             <tr><td>⊥</td><td>0 / BOT</td><td>Bottom</td><td>Absolute False (0, 1)</td></tr>
@@ -589,7 +589,7 @@ class MainWindow(QMainWindow):
         </ul>
         
         <h4 style='color:{c_head};'>PLTS Validity</h4>
-        <p>A formula φ is <b>Valid</b> in PLTS M iff for all statess w, (M, w ⊨ φ) = (1, 0).</p>
+        <p>A formula φ is <b>Valid</b> in PLTS M iff for all states w, (M, w ⊨ φ) = (1, 0).</p>
         </div>
         """
         QMessageBox.information(self, "Definitions", msg)
@@ -1251,6 +1251,7 @@ class MainWindow(QMainWindow):
         try:
             f_str = self.formula_input.text().strip()
             m_name = self.combo_models.currentText()
+            selected_w_name = self.combo_worlds.currentText()
             
             if not f_str or not m_name:
                 self.validity_label.setText("Validity: Error")
@@ -1267,6 +1268,7 @@ class MainWindow(QMainWindow):
             
             results = []
             failed_worlds = []
+            selected_world_res_str = "Not Found"
 
             sorted_worlds = sorted(model.worlds, key=lambda w: w.name_long)
 
@@ -1278,23 +1280,25 @@ class MainWindow(QMainWindow):
                     return
 
                 res = root.evaluate(model, world, twist)
-                results.append(res)
+                res_str = str(res).replace("'", "")
                 
+                if world.name_long == selected_w_name:
+                    selected_world_res_str = res_str
+
                 if res != (lat_top, lat_bot):
                     failed_worlds.append(world.name_long)
+                    results.append((world.name_long, res_str))
 
-            validity_val = twist.weak_meet_set(results)
-            is_valid = (validity_val == (lat_top, lat_bot)) and (not failed_worlds)
-            
-            val_str = str(validity_val).replace("'", "")
-            
+            is_valid = not failed_worlds
             if is_valid:
-                self.validity_label.setText(f"<span style='color:green'>VALID {val_str}</span>")
-                self.statusBar().showMessage(f"Valid in {m_name}", 5000)
+                self.validity_label.setText(f"<span style='color:green'>VALID</span>")
             else:
-                fail_msg = f"{failed_worlds[:3]}..." if len(failed_worlds)>3 else str(failed_worlds)
-                self.validity_label.setText(f"<span style='color:red'>INVALID {val_str}</span> Failed: {fail_msg}")
-                self.statusBar().showMessage(f"Invalid. Failed in {len(failed_worlds)} states.", 5000)
+                fail_msg = " | ".join([f"{p[0]}: {p[1]}" for p in results])
+                self.validity_label.setText(f"<span style='color:red'>INVALID</span> Failed: {fail_msg}")
+
+            self.result_label.setText(f"Result: <b>{selected_world_res_str}</b>")
+            
+            self.statusBar().showMessage(f"Checked {m_name}. Global validity and local result updated.", 5000)
 
         except Exception as e:
             self.validity_label.setText("Validity: Error")

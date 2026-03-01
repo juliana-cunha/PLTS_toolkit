@@ -46,7 +46,7 @@ class NewWorldDialog(QDialog):
         self.long_name_input.setPlaceholderText("Unique ID (e.g. State_1)")
         
         self.short_name_input = QLineEdit()
-        self.short_name_input.setPlaceholderText("Graph Label (e.g. s1)")
+        self.short_name_input.setPlaceholderText("Graph Label (e.g. s1). Optional if length long name <= 5.")
         
         self.combo_ts = QComboBox()
         self.combo_ts.setPlaceholderText("Select Twist Structure")
@@ -123,7 +123,7 @@ class NewWorldDialog(QDialog):
         if ts_name not in self.twist_structures: return
 
         ts = self.twist_structures[ts_name]
-        sorted_elems = sorted(list(ts.elements), key=lambda x: str(x))
+        sorted_elems = ts.toposort_twist_elements()
         
         for combo in self.assignment_widgets.values():
             prev_text = combo.currentText()
@@ -149,12 +149,24 @@ class NewWorldDialog(QDialog):
         s_name = self.short_name_input.text().strip()
         ts_name = self.combo_ts.currentText()
         
-        if not l_name or not s_name:
+        if not l_name:
             QMessageBox.warning(self, "Error", "Names are required.")
             return
         if not ts_name:
             QMessageBox.warning(self, "Error", "Twist Structure required.")
             return
+        
+        if len(s_name) > 5:
+            QMessageBox.warning(self, "Error", "Short name must be smaller than 5 char.")
+            return
+
+        if not s_name:
+            if len(l_name) <= 5:
+                s_name = l_name
+            else:
+                QMessageBox.warning(self, "Error", "Short Name is required for long names (>5 chars).")
+                return
+        
         
         # Check duplicates in queue
         for item in self.queue_data:
@@ -183,6 +195,10 @@ class NewWorldDialog(QDialog):
         self.long_name_input.clear()
         self.short_name_input.clear()
         self.long_name_input.setFocus()
+
+        for combo in self.assignment_widgets.values():
+            if combo.count() > 0:
+                combo.setCurrentIndex(0)
 
     def remove_from_queue(self) -> None:
         row = self.list_queue.currentRow()

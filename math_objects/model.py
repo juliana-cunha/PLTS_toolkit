@@ -102,15 +102,21 @@ class Model:
         # 1. Aggregate Data
         edge_data = defaultdict(list)
         
+        bottom_pair = (
+            self.twist_structure.residuated_lattice.bottom,
+            self.twist_structure.residuated_lattice.top
+        )
+
         for act in actions_to_draw:
             if act in self.accessibility_relations:
                 for src, targets in self.accessibility_relations[act].items():
                     for tgt, weight in targets.items():
-                        if weight is not None:
-                            u, v = src.name_short, tgt.name_short
-                            w_str = str(weight).replace("'", "").replace('"', "").replace(" ", "")
-                            label_str = f"{act}: {w_str}"
-                            edge_data[(u, v)].append(label_str)
+                        if weight is None or weight == bottom_pair:
+                            continue
+                        u, v = src.name_short, tgt.name_short
+                        w_str = str(weight).replace("'", "").replace('"', "").replace(" ", "")
+                        label_str = f"{act}: {w_str}"
+                        edge_data[(u, v)].append(label_str)
 
         # 2. Layout
         plt.figure(figsize=(12, 10))

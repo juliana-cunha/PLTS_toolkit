@@ -110,19 +110,22 @@ class NewModelDialog(QDialog):
     # Logic
     def on_ts_changed(self, index: int):
         name = self.combo_ts.currentText()
-        
-        # 1. Update available weights for relations
+
         if name in self.twist_structures:
             ts = self.twist_structures[name]
-            sorted_elems = sorted(list(ts.elements), key=lambda x: str(x))
+
+            sorted_elems = ts.toposort_twist_elements()
+
+            bottom_elem = sorted_elems[0]
+
             self.ts_elements_data = []
-            self.ts_elements_data.append((self.no_connection_str, None))
+            self.ts_bottom = bottom_elem
+
             for e in sorted_elems:
                 real_str = str(e)
                 display_str = real_str.replace("'", "")
                 self.ts_elements_data.append((display_str, real_str))
 
-        # 2. Filter Worlds List
         self.filter_worlds_by_ts(name)
 
     def filter_worlds_by_ts(self, ts_name: str) -> None:
@@ -219,11 +222,10 @@ class NewModelDialog(QDialog):
                     combo.addItem(display_text, user_data)
                 
                 saved_val = row_data.get(tgt, None)
-                
+
                 if saved_val is None:
-                    idx = combo.findData(None)
+                    idx = combo.findData(str(self.ts_bottom))
                     combo.setCurrentIndex(idx if idx >= 0 else 0)
-                    combo.setStyleSheet("color: gray;")
                 else:
                     saved_str = str(saved_val)
                     idx = combo.findData(saved_str)
@@ -231,7 +233,6 @@ class NewModelDialog(QDialog):
                         combo.setCurrentIndex(idx)
                     else:
                         combo.setCurrentIndex(0)
-                    combo.setStyleSheet("background-color: #d1f7c4; font-weight: bold;")
                 
                 self.table_relations.setCellWidget(r, c, combo)
 
