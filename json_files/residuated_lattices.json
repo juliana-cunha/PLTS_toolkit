@@ -1,12 +1,12 @@
 {
     "residuated_lattices": [
         {
-            "name_residuated_lattice": "Boolean Algebra RL",
+            "name_residuated_lattice": "Boolean Algebra",
             "name_lattice": "Boolean Algebra"
         },
         {
-            "name_residuated_lattice": "Three-Valued Algebra RL",
-            "name_lattice": "Three-Valued Algebra"
+            "name_residuated_lattice": "Lukasiewicz Three-Valued Algebra",
+            "name_lattice": "Lukasiewicz Three-Valued Algebra"
         }
     ]
 }

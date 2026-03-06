@@ -503,11 +503,11 @@ class MainWindow(QMainWindow):
         self.formula_input.setPlaceholderText("Type formula here (e.g., [a]p & q)...") 
         self.formula_input.returnPressed.connect(self.evaluate_formula) 
         
-        self.btn_eval = QPushButton("Interpret")
+        self.btn_eval = QPushButton("Local Satisfaction")
         self.btn_eval.clicked.connect(self.evaluate_formula)
         
-        self.btn_validity = QPushButton("Check Validity")
-        self.btn_validity.setToolTip("Check if the formula holds in ALL states of the PLTS")
+        self.btn_validity = QPushButton("Global Satisfaction")
+        self.btn_validity.setToolTip("Computes the global satisfaction.")
         self.btn_validity.clicked.connect(self.check_model_validity)
         
         input_layout.addWidget(self.formula_input)
@@ -524,8 +524,8 @@ class MainWindow(QMainWindow):
         self.validity_label = QLabel("")
         self.validity_label.setStyleSheet("font-weight: bold; font-size: 14px; margin-left: 20px;")
         
-        result_layout.addWidget(self.result_label)
-        result_layout.addWidget(self.validity_label)
+        result_layout.addWidget(self.result_label, alignment=Qt.AlignmentFlag.AlignTop)
+        result_layout.addWidget(self.validity_label, alignment=Qt.AlignmentFlag.AlignTop)
         result_layout.addStretch()
         
         right_layout.addLayout(result_layout)
@@ -588,8 +588,8 @@ class MainWindow(QMainWindow):
             <li><b>Box ([a]φ):</b> ¬⟨a⟩¬φ</li>
         </ul>
         
-        <h4 style='color:{c_head};'>PLTS Validity</h4>
-        <p>A formula φ is <b>Valid</b> in PLTS M iff for all states w, (M, w ⊨ φ) = (1, 0).</p>
+        <h4 style='color:{c_head};'>Global Satisfaction</h4>
+        <p>Global Satisfaction:</b> ⊓<sub>w∈W</sub> (w ⊨<sub>M</sub> φ)</p>
         </div>
         """
         QMessageBox.information(self, "Definitions", msg)
@@ -1262,12 +1262,9 @@ class MainWindow(QMainWindow):
             twist = model.twist_structure
             parser = FormulaParser(f_str)
             root = parser.parse()
-
-            lat_top = twist.residuated_lattice.top
-            lat_bot = twist.residuated_lattice.bottom
             
-            results = []
-            failed_worlds = []
+            result_worlds = []
+            result_for_calculation = []
             selected_world_res_str = "Not Found"
 
             sorted_worlds = sorted(model.worlds, key=lambda w: w.name_long)
@@ -1275,33 +1272,33 @@ class MainWindow(QMainWindow):
             for world in sorted_worlds:
                 unknown = [a for a in root.get_atoms() if a not in world.assignments and a != '0' and a.lower() != 'bot']
                 if unknown:
-                    self.validity_label.setText("Validity: Error")
+                    self.validity_label.setText("Global Satisfaction: Error")
                     QMessageBox.warning(self, "Error", f"State {world.name_short} missing assignments for: {unknown}")
                     return
 
                 res = root.evaluate(model, world, twist)
                 res_str = str(res).replace("'", "")
+                result_for_calculation.append(res)
                 
                 if world.name_long == selected_w_name:
                     selected_world_res_str = res_str
 
-                if res != (lat_top, lat_bot):
-                    failed_worlds.append(world.name_long)
-                    results.append((world.name_long, res_str))
-
-            is_valid = not failed_worlds
-            if is_valid:
-                self.validity_label.setText(f"<span style='color:green'>VALID</span>")
-            else:
-                fail_msg = " | ".join([f"{p[0]}: {p[1]}" for p in results])
-                self.validity_label.setText(f"<span style='color:red'>INVALID</span> Failed: {fail_msg}")
-
-            self.result_label.setText(f"Result: <b>{selected_world_res_str}</b>")
+                else:
+                    result_worlds.append((world.name_long, res_str))
             
-            self.statusBar().showMessage(f"Checked {m_name}. Global validity and local result updated.", 5000)
+            meet_all = twist.weak_meet_set(result_for_calculation)
+            res_str_meet_all = str(meet_all).replace("'", "")
+
+
+            msg_results = "<br>".join([f"{p[0]}: {p[1]}" for p in result_worlds])
+            self.validity_label.setText(f"<div>Global Satisfaction: {res_str_meet_all}</div><br>{msg_results}")
+
+            self.result_label.setText(f"Local Satisfaction: <b>{selected_world_res_str}</b>")
+            
+            self.statusBar().showMessage(f"Checked {m_name}. Global and local satisfaction results updated.", 5000)
 
         except Exception as e:
-            self.validity_label.setText("Validity: Error")
+            self.validity_label.setText("Global Satisfaction: Error")
             QMessageBox.critical(self, "Error", str(e))
 
 

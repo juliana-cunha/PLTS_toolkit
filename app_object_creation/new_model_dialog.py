@@ -103,7 +103,7 @@ class NewModelDialog(QDialog):
         action_layout.addWidget(self.combo_current_action)
         layout.addLayout(action_layout)
         
-        layout.addWidget(QLabel("Assign weights (Row → Col). Leave as '(No Connection)' for no edge."))
+        layout.addWidget(QLabel("Assign weights (Row → Col)."))
         self.table_relations = QTableWidget()
         layout.addWidget(self.table_relations)
 
