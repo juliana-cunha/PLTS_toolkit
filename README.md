@@ -20,17 +20,16 @@ The **PLTS Editor** is an interactive GUI application designed for researchers a
 - **Weighted Accessibility Relations** Build Kripke-style models where transitions are not just present/absent but carry a **weight** $(t, f)$ from the algebra.
 - **PLTS Visualization** View PLTSs as directed graphs with support for bidirectional edges, self-loops, and clear labeling of actions and weights.
 
-### 3. Logic Evaluation & Analysis
+### 3. Local and Global Satisfaction
 
 - **Formula Parser** Interpret complex formulas using the specific semantics of Paraconsistent Modal Logic. Supported operators include:
-
   - **Modal:** Box (`[]`), Diamond (`<>` - weighted by relation)
   - **Lattice:** Weak Meet (`&`), Weak Join (`|`)
   - **Material:** Material Implication (`->`), Material Equivalence (`<->`)
   - **Unary:** Paraconsistent Negation (`~`)
   - **Constants:** Top (`1`), Bottom (`0`)
 
-- **PLTS Validity Checking** Automatically verify if a formula is **Valid** (interprets to Absolute True `(1,0)` in all states). The system provides specific counter-examples for invalid formulas.
+- **Global Satisfaction:** Compute the global satisfaction and get the interpretation of formulas in all worlds.
 
 ### 4. User Interface
 
@@ -42,9 +41,14 @@ The **PLTS Editor** is an interactive GUI application designed for researchers a
 
 ### Requirements
 
-- Python 3.8 or higher
+- Python 3.11.2 or higher
+- PyQt6 Version 6.10.2 or higher (Check Install Dependecies)
 
 ### Install Dependencies
+
+Choose one of the following to install the dependencies:
+
+#### Windows (pip)
 
 Run the following command to install the required libraries:
 
@@ -52,13 +56,129 @@ Run the following command to install the required libraries:
 pip install PyQt6 networkx matplotlib
 ```
 
-## How to Run
-
 Navigate to the project directory and execute the main application script:
 
 ```bash
 python app.py
 ```
+
+#### Windows (scripts to configure the environment, install python,if needed, create venv and install all dependencies):
+
+Run the following command to install the required libraries:
+
+```bash
+setup.bat:
+@echo off
+setlocal
+
+:: Verifies if python is installed
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python not found. Trying to install Python 3.12 via winget...
+    winget install -e --id Python.Python.3.12
+    echo Please, close the terminal and open it again to update the PATH.
+    pause
+    exit
+)
+
+echo Creating virtual environment...
+python -m venv .venv
+
+echo Activating virtual environment...
+call .venv\Scripts\activate
+
+echo Installing dependencies...
+python -m pip install --upgrade pip
+pip install PyQt6 networkx matplotlib
+
+echo.
+echo Done! To run the app, use: python app.py
+pause
+```
+
+#### Linux (scripts to configure the environment, install python,if needed, create venv and install all dependencies):
+
+Run the following command to install the required libraries:
+
+```bash
+setup.sh:
+
+#!/bin/bash
+
+detect_distro() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo $ID
+    else
+        echo "unknown"
+    fi
+}
+
+DISTRO=$(detect_distro)
+echo "Distribution detected: $DISTRO"
+
+case $DISTRO in
+    ubuntu|debian|pop|linuxmint|kali)
+        echo "Configuring to Debian/Ubuntu..."
+        sudo apt update
+        sudo apt install -y python3.12 python3.12-venv python3-pip \
+        libxcb-cursor0 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
+        libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0
+        PYTHON_BIN="python3.12"
+        ;;
+
+    fedora)
+        echo "Configuring to Fedora..."
+        sudo dnf install -y python3.12 python3-pip \
+        libxcb libxkbcommon-x11 qt6-qtbase-gui
+        PYTHON_BIN="python3.12"
+        ;;
+
+    arch|manjaro)
+        echo "Configuring to Arch Linux..."
+        sudo pacman -Syu --noconfirm python python-pip \
+        libxcb libxkbcommon-x11
+        PYTHON_BIN="python"
+        ;;
+
+    alpine)
+        echo "Configurando para Alpine..."
+        # Note: PyQt6 in Alpine could be hard due to musl library
+        sudo apk add python3 py3-pip libxcb libxkbcommon
+        PYTHON_BIN="python3"
+        ;;
+
+    *)
+        echo "Distribution not suported automatically."
+        echo "Please, install the Python 3.12 and the XCB libraries manually."
+        exit 1
+        ;;
+esac
+
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment with $PYTHON_BIN..."
+    $PYTHON_BIN -m venv .venv
+else
+    echo "Virtual environment already exists."
+fi
+
+echo "Activating virtual environment and e installing Python dependencies ..."
+source .venv/bin/activate
+
+pip install --upgrade pip
+pip install PyQt6 networkx matplotlib
+
+echo -e "\n===================================================="
+echo "Done!"
+echo "To run the app:"
+echo "1. Activate the venv: source .venv/bin/activate"
+echo "2. Execute: python app.py"
+echo "===================================================="
+```
+
+#### If the previous steps failed to install PyQt6, follow the instructions in:
+
+[Link to PythonGUIs website](https://www.pythonguis.com/pyqt6/)
 
 ## Contact
 
